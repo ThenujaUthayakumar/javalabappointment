@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class JavalabappointmentApplication {
 
 	public static void main(String[] args) {
-		System.out.println("hello");
 		SpringApplication.run(JavalabappointmentApplication.class, args);
 	}
 
