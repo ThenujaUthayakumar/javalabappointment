@@ -1,8 +1,11 @@
 package com.javalabappointment.javalabappointment.service;
 
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.property.UnitValue;
 import com.javalabappointment.javalabappointment.entity.TestEntity;
 import com.javalabappointment.javalabappointment.persist.Test;
 import com.javalabappointment.javalabappointment.repository.TestRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,8 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-
+import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +32,9 @@ public class TestService {
     public TestService(TestRepository testRepository) {
         this.testRepository = testRepository;
     }
+
+//    @Autowired
+//    private JavaMailSender mailSender;
 
     /*------------------------- CREATE TEST LISTS --------------------------------  */
     @Transactional
@@ -120,4 +132,79 @@ public class TestService {
         return testRepository.save(testEntity);
     }
 
+    /*------------------------------ DOWNLOAD TEST LISTS --------------------------------  */
+    public void download(Integer pageNo, Integer pageSize, String orderBy,Test test,Integer fileType, String downloadColumn, HttpServletResponse response) throws IOException {
+        Page<TestEntity> list = getAllTest(pageNo, pageSize, orderBy,test);
+        String[] requiredColumns;
+        if (downloadColumn != null) {
+            requiredColumns = downloadColumn.split(",");
+        } else {
+            requiredColumns = new String[]{"id","name","description","cost"};
+        }
+
+        List<String> columnNames = new ArrayList<>();
+
+        for (String columns : requiredColumns) {
+            if (columns.matches("id")) {
+                columnNames.add("Test No");
+            }
+            if (columns.matches("name")) {
+                columnNames.add("Test Name");
+            }
+            if (columns.matches("description")) {
+                columnNames.add("Test Description");
+            }
+            if (columns.matches("cost")) {
+                columnNames.add("Test Cost");
+            }
+        }
+        if (fileType == 1) {
+
+            response.setHeader("Content-Disposition", "attachment; filename=test.pdf");
+
+            PdfWriter writer = new PdfWriter(response.getOutputStream());
+            PdfDocument pdfDocument;
+            pdfDocument = new PdfDocument(writer);
+            Document document = new Document(pdfDocument, PageSize.A4.rotate());
+
+            try {
+                float[] colWidths = new float[requiredColumns.length];
+                for (int i = 0; i < requiredColumns.length; i++) {
+                    colWidths[i] = 10f;
+                }
+
+                com.itextpdf.layout.element.Table table = new com.itextpdf.layout.element.Table((UnitValue.createPercentArray(colWidths)));
+                table.setFontSize(10);
+
+                //Headed
+                for (String col : columnNames) {
+                    table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(col).setBold()));
+                }
+
+                //Set data
+                for (TestEntity emp : list) {
+                    for (String col : requiredColumns) {
+                        if (col.matches("id")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getId() != null ? emp.getId().toString() : "")));
+                        }
+                        if (col.matches("name")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getName() != null ? emp.getName() : "")));
+                        }
+                        if (col.matches("description")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getDescription() != null ? emp.getDescription() : "")));
+                        }
+                        if (col.matches("cost")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getCost() != null ? emp.getCost().toString() : "")));
+                        }
+                    }
+                }
+                document.add(table);
+                document.close();
+                writer.flush();
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
