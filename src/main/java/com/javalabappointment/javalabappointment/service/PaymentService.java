@@ -1,10 +1,14 @@
 package com.javalabappointment.javalabappointment.service;
 
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.borders.Border;
+import com.itextpdf.layout.borders.SolidBorder;
+import com.itextpdf.layout.element.*;
 import com.itextpdf.layout.property.UnitValue;
 import com.javalabappointment.javalabappointment.entity.AppointmentEntity;
 import com.javalabappointment.javalabappointment.entity.PaymentEntity;
@@ -22,6 +26,23 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import com.itextpdf.io.font.FontConstants;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.property.TextAlignment;
+import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -41,6 +62,15 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
         this.appointmentRepository = appointmentRepository;
         this.testRepository = testRepository;
+    }
+
+    /*--------------------- GET APPOINTMENT EMAIL FOR PAYMENT RECEIPT SENT --------------*/
+    public String getAppointmentDetails(Integer appointmentId) {
+        AppointmentEntity payment= appointmentRepository.findAppointmentWithRecipientEmailById(appointmentId);
+        if (payment != null && payment.getEmail() != null) {
+            return payment.getEmail();
+        }
+        return null;
     }
 
     /*------------------------------- CREATE PAYMENT ----------------------------*/
@@ -272,4 +302,138 @@ public class PaymentService {
             }
         }
     }
+
+
+    /*------------------- BILL FORMAT FOR PAYMENT ----------------------------------*/
+    public byte[] generateBill(Payment payment) throws IOException {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+            PdfWriter writer = new PdfWriter(outputStream);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf, PageSize.A4);
+
+            try {
+                PdfFont font = PdfFontFactory.createFont("Helvetica");
+                try {
+                    Image logo = new Image(ImageDataFactory.create("src/main/resources/images/logo.png"));
+                    logo.setWidth(100);
+                    document.add(logo);
+                } catch (IOException e) {
+                    System.err.println("Failed to load logo image: " + e.getMessage());
+                }
+                addBillHeader(document, font, payment);
+                addCompanyDetails(document, font);
+               // addCustomerDetails(document, font, payment);
+                addItemizedList(document, font, payment);
+                //addTotalAmount(document, font, payment);
+            } finally {
+                document.close();
+            }
+            return outputStream.toByteArray();
+        }
+
+        private void addBillHeader(Document document, PdfFont font, Payment payment) {
+            Paragraph header = new Paragraph("Payment Receipt").setFont(font).setFontSize(20);
+            header.setTextAlignment(TextAlignment.CENTER);
+            document.add(header);
+
+            payment.setReferenceNumber(getReferencenumber()); // Assuming getReferencenumber() returns a value
+            Paragraph billNo = new Paragraph("Bill No: " + payment.getReferenceNumber()).setFont(font);
+            billNo.setTextAlignment(TextAlignment.RIGHT);
+
+            AppointmentEntity appointment = appointmentRepository.findAppointmentWithRecipientEmailById(payment.getAppointmentId().getId());
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            String currentDateTime = dateFormat.format(new Date());
+            Paragraph date = new Paragraph("Bill Date: " + currentDateTime).setFont(font);
+            date.setTextAlignment(TextAlignment.RIGHT);
+
+            Paragraph appointmentDate = new Paragraph("Appointment Date: " + appointment.getAppointmentDateTime()).setFont(font);
+            appointmentDate.setTextAlignment(TextAlignment.RIGHT);
+            document.add(date);
+            document.add(appointmentDate);
+            document.add(billNo);
+
+            // Add patient name and phone number in the header
+            Paragraph customerInfo = new Paragraph()
+                    .add(new Text("Patient Name : ").setFont(font))
+                    .add(new Text(payment.getCardHolderName()).setFont(font).setBold())
+                    .add("\n")
+                    .add(new Text("Mobile Number   : ").setFont(font))
+                    .add(new Text(payment.getCardHolderPhoneNumber()).setFont(font).setBold())
+                    .add("\n")
+                    .add(new Text("Appointment Number : ").setFont(font))
+                    .add(new Text(appointment.getReferenceNumber()).setFont(font).setBold())
+                    .add("\n");
+            customerInfo.setTextAlignment(TextAlignment.LEFT);
+            document.add(customerInfo);
+
+            document.add(new Paragraph("\n"));
+        }
+
+        private void addCompanyDetails(Document document, PdfFont font) {
+            Paragraph companyName = new Paragraph("Your Company Name").setFont(font).setBold();
+            Paragraph companyContact = new Paragraph("Contact: +1234567890").setFont(font);
+            document.add(companyName);
+            document.add(companyContact);
+
+            document.add(new Paragraph("\n"));
+        }
+
+//        private void addCustomerDetails(Document document, PdfFont font, Payment payment) {
+//            Table table = new Table(new float[]{1, 3}).useAllAvailableWidth();
+//            table.setBorder(new SolidBorder(new DeviceRgb(169, 169, 169), 1));
+//            table.setBackgroundColor(new DeviceRgb(240, 240, 240));
+//
+//            table.addCell(createCell("Customer Name:", font, true));
+//            table.addCell(createCell(payment.getCardHolderName(), font, false));
+//            table.addCell(createCell("Email:", font, true));
+//            table.addCell(createCell(payment.getCardHolderPhoneNumber(), font, false));
+//            // Add more customer details as needed
+//
+//            document.add(table);
+//            document.add(new Paragraph("\n")); // Add empty line
+//        }
+
+    private void addItemizedList(Document document, PdfFont font, Payment payment) {
+        DecimalFormat df = new DecimalFormat("#.00");
+
+        AppointmentEntity appointment = appointmentRepository.findAppointmentWithRecipientEmailById(payment.getAppointmentId().getId());
+        if (appointment != null && appointment.getTestId().getName() != null) {
+            Table table = new Table(new float[]{3, 1}).useAllAvailableWidth();
+            table.setBorder(new SolidBorder(new DeviceRgb(169, 169, 169), 1));
+
+            table.addCell(createCell("Test Name", font, true).setBackgroundColor(new DeviceRgb(220, 220, 220)));
+            table.addCell(createCell("Amount (LKR)", font, true).setBackgroundColor(new DeviceRgb(220, 220, 220)));
+            table.addCell(createCell(appointment.getTestId().getName(), font, false));
+            table.addCell(createCell(df.format(payment.getAmount()), font, false));
+
+            table.addCell(createCell("Total Amount:", font, false).setBackgroundColor(new DeviceRgb(220, 220, 220)));
+            table.addCell(createCell("Rs " + df.format(payment.getAmount()), font, false).setBackgroundColor(new DeviceRgb(220, 220, 220)));
+
+            document.add(table);
+            document.add(new Paragraph("\n"));
+        }
+    }
+
+
+//        private void addTotalAmount(Document document, PdfFont font, Payment payment) {
+//            DecimalFormat df = new DecimalFormat("#.00");
+//
+//            Paragraph totalAmountParagraph = new Paragraph("Total Amount: Rs " + df.format(payment.getAmount()))
+//                    .setFont(font)
+//                    .setBold()
+//                    .setMarginTop(10); // Adjust top margin for spacing
+//            totalAmountParagraph.setTextAlignment(TextAlignment.RIGHT);
+//            document.add(totalAmountParagraph);
+//        }
+
+        private Cell createCell(String content, PdfFont font, boolean isBold) {
+            Cell cell = new Cell().add(new Paragraph(content).setFont(font));
+            cell.setBorder(Border.NO_BORDER);
+            if (isBold) {
+                cell.setFont(font).setBold();
+            }
+            return cell;
+        }
 }
