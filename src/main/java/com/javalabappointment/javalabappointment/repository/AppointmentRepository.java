@@ -1,6 +1,7 @@
 package com.javalabappointment.javalabappointment.repository;
 
 import com.javalabappointment.javalabappointment.entity.AppointmentEntity;
+import com.javalabappointment.javalabappointment.entity.PaymentEntity;
 import com.javalabappointment.javalabappointment.entity.TestEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,21 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity,I
             SELECT reference_number FROM appointments WHERE reference_number IS NOT NULL ORDER BY id DESC LIMIT 1
             """,nativeQuery = true)
     String findReferenceNumber();
+
+    @Query(value = """
+            SELECT * FROM appointments a
+            WHERE a.id  = :appointmentId
+            """, nativeQuery = true)
+    AppointmentEntity findAppointmentWithRecipientEmailById(Integer appointmentId);
+
+    @Query(value = """
+        SELECT a.id AS appointment_id, a.name AS appointment_name, t.id AS test_id, t.name AS test_name
+        FROM appointments a
+        LEFT JOIN tests t ON t.id = a.test_id
+        WHERE a.id = :appointmentId
+        """, nativeQuery = true)
+    AppointmentEntity findTestName(Integer appointmentId);
+
 
     @Query(value = """
         SELECT a.* FROM appointments a
