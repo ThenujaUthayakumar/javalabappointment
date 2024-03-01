@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Booking</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h2>Book Appointment</h2>
+    <form id="appointmentForm">
+        <!-- Include form fields for appointment details -->
+        <input type="text" id="name" name="name" placeholder="Your Name" required>
+        <input type="email" id="email" name="email" placeholder="Your Email" required>
+        <!-- Add more fields as necessary -->
+
+        <button type="submit" class="btn btn-primary">Book Appointment</button>
+    </form>
+    <div id="confirmation" style="display: none;">
+        <p>Appointment successfully booked! Your Appointment ID is: <span id="appointmentId"></span></p>
+        <!-- Payment details -->
+        <h3>Payment Details</h3>
+        <input type="text" id="cardNumber" placeholder="Card Number" required>
+        <input type="text" id="expiryDate" placeholder="Expiration Date (MM/YY)" required>
+        <input type="text" id="cvv" placeholder="CVV" required>
+        <button id="payButton" class="btn btn-success mt-3">Pay Now</button>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#appointmentForm').submit(function(event) {
+        event.preventDefault();
+
+        // Construct JSON object from form fields
+        var formData = {
+            name: $('#name').val(),
+            email: $('#email').val()
+            // Add more fields as necessary
+        };
+
+        // Make AJAX call to schedule appointment
+        $.ajax({
+            type: 'POST',
+            url: 'http://localhost:8080/appointment/store',
+            contentType: 'application/json', // Set content type to JSON
+            data: JSON.stringify(formData), // Convert formData to JSON string
+            success: function(response) {
+                // If appointment scheduled successfully, display confirmation and store appointment ID
+                $('#confirmation').show();
+                $('#appointmentId').text(response.id);
+                $('#payButton').data('appointmentId', response.id); // Store appointment ID for payment
+
+                // Debugging: Log stored appointmentId
+                console.log('Stored Appointment ID:', response.id);
+            },
+            error: function(xhr, status, error) {
+                // Handle errors
+                console.error(xhr.responseText);
+            }
+        });
+    });
+
+    $('#payButton').click(function(event) {
+        var appointmentId = $(this).data('appointmentId');
+
+        // Debugging: Log clicked appointmentId
+        console.log('Clicked Appointment ID:', appointmentId);
+
+        if (appointmentId) { // Corrected condition to check if appointmentId exists
+            // Collect payment information from input fields
+            var paymentData = {
+                    appointmentId: {
+        id: appointmentId
+    },
+                cardNumber:parseInt($('#cardNumber').val()),
+                expiryDate: $('#expiryDate').val(),
+                cvv: parseInt($('#cvv').val())
+                // Include other payment details as needed
+            };
+
+            // Make AJAX call to process payment
+            $.ajax({
+                type: 'POST',
+                url: 'http://localhost:8080/payment/store',
+                contentType: 'application/json', // Set content type to JSON
+                data: JSON.stringify(paymentData), // Convert paymentData to JSON string
+                success: function(response) {
+                    // Payment successful, show confirmation message or redirect to a thank you page
+                    alert('Payment successful!');
+                },
+                error: function(xhr, status, error) {
+                    // Handle errors
+                    console.error(xhr.responseText);
+                }
+            });
+        } else {
+            console.error('Appointment ID is undefined.');
+        }
+    });
+});
+
+</script>
+</body>
+</html>

@@ -78,48 +78,48 @@ public class PaymentService {
     public PaymentEntity store(Payment payment) throws ParseException {
         PaymentEntity paymentEntity=new PaymentEntity();
 
-        if(payment.getAmount() == null)
-        {
-            throw new IllegalStateException("Please Enter Payment Amount !");
-        }
-
-        String cardNumberString = String.valueOf(payment.getCardNumber());
-        if(payment.getCardNumber() == null || cardNumberString.length()!=16)
-        {
-            throw new IllegalStateException("Please Enter Your Card Number !");
-        }
-
-        String cvvString = String.valueOf(payment.getCvv());
-        if(payment.getCvv() == null || cvvString.length()!=3)
-        {
-            throw new IllegalStateException("Please Enter Your Card CVV Number !");
-        }
-
-        if(payment.getExpiryDate() == null || payment.getExpiryDate().isEmpty())
-        {
-            throw new IllegalStateException("Please Enter Your Card Expiry Date !");
-        }
-
-        if(payment.getCardHolderName() == null || payment.getCardHolderName().isEmpty())
-        {
-            throw new IllegalStateException("Please Enter Your Name Of Card !");
-        }
-
-        if(payment.getCardHolderPhoneNumber() == null || payment.getCardHolderPhoneNumber().isEmpty())
-        {
-            throw new IllegalStateException("Please Enter Your OTP Get Mobile Number !");
-        }
-
-        AppointmentEntity appointmentEntity=appointmentRepository.findById(payment.getAppointmentId().getId()).orElse(null);
-        if (appointmentEntity==null)
-        {
-            throw new IllegalStateException("Patient Not Found !");
-        }
-
-        PaymentEntity existingPayment = paymentRepository.findByAppointmentId(payment.getAppointmentId());
-        if (existingPayment != null) {
-            throw new IllegalStateException("Payment for this appointment already exists !");
-        }
+//        if(payment.getAmount() == null)
+//        {
+//            throw new IllegalStateException("Please Enter Payment Amount !");
+//        }
+//
+//        String cardNumberString = String.valueOf(payment.getCardNumber());
+//        if(payment.getCardNumber() == null || cardNumberString.length()!=16)
+//        {
+//            throw new IllegalStateException("Please Enter Your Card Number !");
+//        }
+//
+//        String cvvString = String.valueOf(payment.getCvv());
+//        if(payment.getCvv() == null || cvvString.length()!=3)
+//        {
+//            throw new IllegalStateException("Please Enter Your Card CVV Number !");
+//        }
+//
+//        if(payment.getExpiryDate() == null || payment.getExpiryDate().isEmpty())
+//        {
+//            throw new IllegalStateException("Please Enter Your Card Expiry Date !");
+//        }
+//
+//        if(payment.getCardHolderName() == null || payment.getCardHolderName().isEmpty())
+//        {
+//            throw new IllegalStateException("Please Enter Your Name Of Card !");
+//        }
+//
+//        if(payment.getCardHolderPhoneNumber() == null || payment.getCardHolderPhoneNumber().isEmpty())
+//        {
+//            throw new IllegalStateException("Please Enter Your OTP Get Mobile Number !");
+//        }
+//
+//        AppointmentEntity appointmentEntity=appointmentRepository.findById(payment.getAppointmentId().getId()).orElse(null);
+//        if (appointmentEntity==null)
+//        {
+//            throw new IllegalStateException("Patient Not Found !");
+//        }
+//
+//        PaymentEntity existingPayment = paymentRepository.findByAppointmentId(payment.getAppointmentId());
+//        if (existingPayment != null) {
+//            throw new IllegalStateException("Payment for this appointment already exists !");
+//        }
 
         paymentEntity.setAppointmentId(payment.getAppointmentId());
         paymentEntity.setAmount(payment.getAmount());
@@ -146,6 +146,12 @@ public class PaymentService {
             String finalReferenceNumber="INVOICE"+newReferenceNumber;
             return finalReferenceNumber;
         }
+    }
+
+    /*-------------------- FIND ALL PAYMENTS FOR EMAIL PURPOSE --------------------*/
+    public List<PaymentEntity> findAllPayment()
+    {
+        return paymentRepository.findAll();
     }
 
     /*------------------------------ GET ALL PAYMENT RECORDS --------------------------------  */
@@ -318,14 +324,14 @@ public class PaymentService {
                     Image logo = new Image(ImageDataFactory.create("src/main/resources/images/logo.png"));
                     logo.setWidth(100);
                     document.add(logo);
+
                 } catch (IOException e) {
                     System.err.println("Failed to load logo image: " + e.getMessage());
                 }
                 addBillHeader(document, font, payment);
                 addCompanyDetails(document, font);
-               // addCustomerDetails(document, font, payment);
                 addItemizedList(document, font, payment);
-                //addTotalAmount(document, font, payment);
+                addPaidLogo(document);
             } finally {
                 document.close();
             }
@@ -337,8 +343,9 @@ public class PaymentService {
             header.setTextAlignment(TextAlignment.CENTER);
             document.add(header);
 
-            payment.setReferenceNumber(getReferencenumber()); // Assuming getReferencenumber() returns a value
-            Paragraph billNo = new Paragraph("Bill No: " + payment.getReferenceNumber()).setFont(font);
+            String billNumber = payment.getReferenceNumber();
+
+            Paragraph billNo = new Paragraph("Bill No: " + billNumber).setFont(font);
             billNo.setTextAlignment(TextAlignment.RIGHT);
 
             AppointmentEntity appointment = appointmentRepository.findAppointmentWithRecipientEmailById(payment.getAppointmentId().getId());
@@ -354,7 +361,6 @@ public class PaymentService {
             document.add(appointmentDate);
             document.add(billNo);
 
-            // Add patient name and phone number in the header
             Paragraph customerInfo = new Paragraph()
                     .add(new Text("Patient Name : ").setFont(font))
                     .add(new Text(payment.getCardHolderName()).setFont(font).setBold())
@@ -372,28 +378,14 @@ public class PaymentService {
         }
 
         private void addCompanyDetails(Document document, PdfFont font) {
-            Paragraph companyName = new Paragraph("Your Company Name").setFont(font).setBold();
-            Paragraph companyContact = new Paragraph("Contact: +1234567890").setFont(font);
+            Paragraph companyName = new Paragraph("ABC Laboratory").setFont(font).setBold();
+            Paragraph companyContact = new Paragraph("+94 0115 333 666").setFont(font);
+            Paragraph companyAddress = new Paragraph("ABC Laboratory, Wijerama Mawatha, Colombo 07").setFont(font);
             document.add(companyName);
             document.add(companyContact);
-
+            document.add(companyAddress);
             document.add(new Paragraph("\n"));
         }
-
-//        private void addCustomerDetails(Document document, PdfFont font, Payment payment) {
-//            Table table = new Table(new float[]{1, 3}).useAllAvailableWidth();
-//            table.setBorder(new SolidBorder(new DeviceRgb(169, 169, 169), 1));
-//            table.setBackgroundColor(new DeviceRgb(240, 240, 240));
-//
-//            table.addCell(createCell("Customer Name:", font, true));
-//            table.addCell(createCell(payment.getCardHolderName(), font, false));
-//            table.addCell(createCell("Email:", font, true));
-//            table.addCell(createCell(payment.getCardHolderPhoneNumber(), font, false));
-//            // Add more customer details as needed
-//
-//            document.add(table);
-//            document.add(new Paragraph("\n")); // Add empty line
-//        }
 
     private void addItemizedList(Document document, PdfFont font, Payment payment) {
         DecimalFormat df = new DecimalFormat("#.00");
@@ -416,24 +408,22 @@ public class PaymentService {
         }
     }
 
-
-//        private void addTotalAmount(Document document, PdfFont font, Payment payment) {
-//            DecimalFormat df = new DecimalFormat("#.00");
-//
-//            Paragraph totalAmountParagraph = new Paragraph("Total Amount: Rs " + df.format(payment.getAmount()))
-//                    .setFont(font)
-//                    .setBold()
-//                    .setMarginTop(10); // Adjust top margin for spacing
-//            totalAmountParagraph.setTextAlignment(TextAlignment.RIGHT);
-//            document.add(totalAmountParagraph);
-//        }
-
-        private Cell createCell(String content, PdfFont font, boolean isBold) {
+    private Cell createCell(String content, PdfFont font, boolean isBold) {
             Cell cell = new Cell().add(new Paragraph(content).setFont(font));
             cell.setBorder(Border.NO_BORDER);
             if (isBold) {
                 cell.setFont(font).setBold();
             }
             return cell;
+    }
+
+    private void addPaidLogo(Document document) {
+        try {
+            Image logo = new Image(ImageDataFactory.create("src/main/resources/images/paidLogo.png"));
+            logo.setWidth(200);
+            document.add(new Paragraph().add(logo).setTextAlignment(TextAlignment.CENTER));
+        } catch (IOException e) {
+            System.err.println("Failed to load logo image: " + e.getMessage());
         }
+    }
 }

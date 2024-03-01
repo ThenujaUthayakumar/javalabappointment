@@ -1,11 +1,17 @@
 package com.javalabappointment.javalabappointment.service;
 
+import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.property.UnitValue;
 import com.javalabappointment.javalabappointment.entity.AppointmentEntity;
 import com.javalabappointment.javalabappointment.entity.TestEntity;
 import com.javalabappointment.javalabappointment.persist.Appointment;
-import com.javalabappointment.javalabappointment.persist.Test;
 import com.javalabappointment.javalabappointment.repository.AppointmentRepository;
 import com.javalabappointment.javalabappointment.repository.TestRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -150,5 +157,125 @@ public class AppointmentService {
                 appointment.getGender());
 
         return appointmentEntities;
+    }
+
+    /*------------------------- DOWNLOAD AS A PDF IN ALL RECORDS -------------------*/
+    public void download(Integer pageNo, Integer pageSize, String orderBy,Appointment appointment,Integer fileType, String downloadColumn, HttpServletResponse response) throws IOException {
+        Page<AppointmentEntity> list = getAll(pageNo, pageSize, orderBy,appointment);
+        String[] requiredColumns;
+        if (downloadColumn != null) {
+            requiredColumns = downloadColumn.split(",");
+        } else {
+            requiredColumns = new String[]{"id","reference_number","name","address","email","age",
+            "phone_number","appointment_date_time","test_id","doctor_name","gender"};
+        }
+
+        List<String> columnNames = new ArrayList<>();
+
+        for (String columns : requiredColumns) {
+            if (columns.matches("id")) {
+                columnNames.add("Appointment No");
+            }
+            if (columns.matches("reference_number")) {
+                columnNames.add("Reference Number");
+            }
+            if (columns.matches("name")) {
+                columnNames.add("Patient Name");
+            }
+            if (columns.matches("address")) {
+                columnNames.add("Patient Address");
+            }
+            if (columns.matches("email")) {
+                columnNames.add("Patient E-mail");
+            }
+            if (columns.matches("age")) {
+                columnNames.add("Patient Age");
+            }
+            if (columns.matches("phone_number")) {
+                columnNames.add("Patient Mobile Number");
+            }
+            if (columns.matches("appointment_date_time")) {
+                columnNames.add("Appointment Date & Time");
+            }
+            if (columns.matches("test_id")) {
+                columnNames.add("Test Name");
+            }
+            if (columns.matches("doctor_name")) {
+                columnNames.add("Doctor Name");
+            }
+            if (columns.matches("gender")) {
+                columnNames.add("Gender");
+            }
+        }
+        if (fileType == 1) {
+
+            response.setHeader("Content-Disposition", "attachment; filename=appointment.pdf");
+
+            PdfWriter writer = new PdfWriter(response.getOutputStream());
+            PdfDocument pdfDocument;
+            pdfDocument = new PdfDocument(writer);
+            Document document = new Document(pdfDocument, PageSize.A4.rotate());
+
+            try {
+                float[] colWidths = new float[requiredColumns.length];
+                for (int i = 0; i < requiredColumns.length; i++) {
+                    colWidths[i] = 10f;
+                }
+
+                com.itextpdf.layout.element.Table table = new com.itextpdf.layout.element.Table((UnitValue.createPercentArray(colWidths)));
+                table.setFontSize(10);
+
+                //Headed
+                for (String col : columnNames) {
+                    table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(col).setBold()));
+                }
+
+                //Set data
+                for (AppointmentEntity emp : list) {
+                    for (String col : requiredColumns) {
+                        if (col.matches("id")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getId() != null ? emp.getId().toString() : "N/A")));
+                        }
+                        if (col.matches("reference_number")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getReferenceNumber() != null ? emp.getReferenceNumber().toString() : "N/A")));
+                        }
+                        if (col.matches("name")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getName() != null ? emp.getName() : "N/A")));
+                        }
+                        if (col.matches("address")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getAddress() != null ? emp.getAddress() :"N/A")));
+                        }
+                        if (col.matches("email")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getEmail() != null ? emp.getEmail().toString() : "N/A")));
+                        }
+                        if (col.matches("age")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getAge() != null ? emp.getAge().toString() : "N/A")));
+                        }
+                        if (col.matches("phone_number")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getPhoneNumber() != null ? emp.getPhoneNumber().toString() : "N/A")));
+                        }
+                        if (col.matches("appointment_date_time")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getAppointmentDateTime() != null ? emp.getAppointmentDateTime().toString() : "N/A")));
+                        }
+                        TestEntity testEntity=testRepository.findById(Integer.valueOf(emp.getTestId().getId())).orElse(null);
+                        if (col.matches("test_id")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(testEntity.getName() != null ? testEntity.getName().toString() : "N/A")));
+                        }
+                        if (col.matches("doctor_name")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getDoctorName() != null ? emp.getDoctorName().toString() : "N/A")));
+                        }
+                        if (col.matches("gender")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getGender() != null ? emp.getGender().toString() : "N/A")));
+                        }
+                    }
+                }
+                document.add(table);
+                document.close();
+                writer.flush();
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

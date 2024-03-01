@@ -8,24 +8,16 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="appointments")
-public class AppointmentEntity {
+@Table(name="contacts")
+public class ContactEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name="reference_number")
-    private String referenceNumber;
-
-    @OneToOne(fetch = FetchType.EAGER,optional = true)
-    @JoinColumn(name = "test_id",referencedColumnName = "id")
-    private TestEntity testId;
 
     @Column(name="name")
     private String name;
@@ -36,20 +28,8 @@ public class AppointmentEntity {
     @Column(name="address")
     private String address;
 
-    @Column(name="email")
-    private String email;
-
-    @Column(name="age")
-    private String age;
-
-    @Column(name="appointment_date_time")
-    private String appointmentDateTime;
-
-    @Column(name="doctor_name")
-    private String doctorName;
-
-    @Column(name="gender")
-    private String gender;
+    @Column(name="message")
+    private String message;
 
     @CreationTimestamp
     @Column(name="created_at")
