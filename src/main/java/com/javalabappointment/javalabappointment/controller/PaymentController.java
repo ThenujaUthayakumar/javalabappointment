@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,17 +36,37 @@ public class PaymentController {
     @PostMapping("/store")
     public PaymentEntity store(@RequestBody Payment payment) throws ParseException {
         PaymentEntity savedPayment = paymentService.store(payment);
+        PaymentEntity paymentEntity=new PaymentEntity();
 
         try {
             byte[] billPdf = paymentService.generateBill(payment);
 
-            //PaymentEntity appointment = paymentService.getAppointmentDetails(payment.getAppointmentId().getId());
+            List<PaymentEntity> appointment = paymentService.findAllPayment();
             Integer appointmentId = payment.getAppointmentId().getId();
             String recipientEmail = paymentService.getAppointmentDetails(appointmentId);
 
                 if (recipientEmail != null) {
-                    String subject = "Payment Receipt";
-                    String message = "Thank you for your payment. Please find attached your payment receipt.";
+                    String subject = "Payment Receipt and Appointment Confirmation";
+                    String message = "Dear";
+
+                    for (PaymentEntity payments : appointment) {
+                        String patientName = payments.getAppointmentId().getName();
+                        String appointmentDateTime = payments.getAppointmentId().getAppointmentDateTime();
+
+                        message += patientName + " - Appointment Date & Time: " + appointmentDateTime + ", ";
+                    }
+
+                    message += "\n\n"
+                            + "Location: ABC Laboratory, Wijerama Mawatha, Colombo 07\n\n"
+                            + "Please ensure that you arrive 30 Minutes before your appointment time to complete any necessary paperwork and prepare for your testing.\n\n"
+                            + "We would like to thank you for your payment. Below We're attach the Payment receipt.\n\n"
+                            + "If you have any questions or concerns regarding your appointment or payment receipt, please feel free to contact us at +94 0115 333 666.\n\n"
+                            + "Thank You For Choosing Us !\n\n"
+                            + "Sincerely,\n"
+                            + "[ABC Laboratory]\n"
+                            + "[+94 0115 333 666]\n"
+                            + "<img src='cid:clinicLogo' alt='Clinic Logo'><br>";
+
                     sendEmailWithPDF(recipientEmail, subject, message, billPdf);
                 }
                 else
@@ -60,15 +81,6 @@ public class PaymentController {
 
         return savedPayment;
     }
-
-//    private void sendBillEmail(Payment payment, byte[] billPdf) throws MessagingException {
-//        PaymentEntity appointment = paymentService.getAppointmentDetails(payment.getAppointmentId());
-//        String recipientEmail = appointment.getAppointmentId().getEmail();
-//        String subject = "Payment Receipt";
-//        String message = "Thank you for your payment. Please find attached your payment receipt.";
-//        sendEmailWithPDF(recipientEmail, subject, message, billPdf);
-//    }
-
 
     /*-------------------------- SET EMAIL TO SUBJECTS IN THIS CODE WITH ATTACHMENT ------------------------*/
     private void sendEmailWithPDF(String to, String subject, String text, byte[] pdfBytes) throws MessagingException {
@@ -85,21 +97,6 @@ public class PaymentController {
             throw e;
         }
     }
-//
-//    /*----------------- SET RECORDS FOR PAYMENT RECEIPT PDF GENERATE --------------------*/
-//    private byte[] generatePDF(Payment payment) throws IOException {
-//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//        // Generate PDF using a library like iText or Apache PDFBox
-//        // Here you should write code to generate a PDF containing payment details
-//        // For simplicity, I'm assuming a dummy PDF generation
-//        outputStream.write("Payment Receipt\n\n".getBytes());
-//        outputStream.write(("Amount: " + payment.getAmount() + "\n").getBytes());
-//        outputStream.write(("Date: " + payment.getCreatedAt() + "\n").getBytes());
-//        // Add more payment details as needed
-//        byte[] pdfBytes = outputStream.toByteArray();
-//        outputStream.close();
-//        return pdfBytes;
-//    }
 
     /*------------------------------ GET ALL PAYMENT RECORDS --------------------------------  */
     @GetMapping
