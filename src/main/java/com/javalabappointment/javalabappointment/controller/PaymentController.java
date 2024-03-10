@@ -1,9 +1,6 @@
 package com.javalabappointment.javalabappointment.controller;
 
-import com.itextpdf.io.source.ByteArrayOutputStream;
-import com.javalabappointment.javalabappointment.entity.AppointmentEntity;
 import com.javalabappointment.javalabappointment.entity.PaymentEntity;
-import com.javalabappointment.javalabappointment.persist.Appointment;
 import com.javalabappointment.javalabappointment.persist.Payment;
 import com.javalabappointment.javalabappointment.service.PaymentService;
 import jakarta.mail.MessagingException;
@@ -13,8 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.*;
