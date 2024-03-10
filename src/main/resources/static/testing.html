@@ -1,0 +1,130 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <title>Upload Technician</title>-->
+<!--  &lt;!&ndash; Bootstrap CSS &ndash;&gt;-->
+<!--  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<div class="container mt-5">-->
+<!--  <h2>Upload Technician</h2>-->
+<!--  <form id="uploadForm" enctype="multipart/form-data">-->
+<!--    <div class="form-group">-->
+<!--      <label for="name">Technician Name:</label>-->
+<!--      <input type="text" class="form-control" id="name" name="name" required>-->
+<!--    </div>-->
+<!--    <div class="form-group">-->
+<!--      <label for="image">Technician Image:</label>-->
+<!--      <input type="file" class="form-control-file" id="image" name="file" accept="image/*" required>-->
+<!--    </div>-->
+<!--    <button type="submit" class="btn btn-primary">Upload</button>-->
+<!--  </form>-->
+<!--</div>-->
+
+<!--&lt;!&ndash; jQuery and Bootstrap JS &ndash;&gt;-->
+<!--<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>-->
+
+<!--<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>-->
+<!--<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>-->
+
+<!--<script>-->
+<!--    $(document).ready(function () {-->
+<!--        $('#uploadForm').submit(function (event) {-->
+<!--            event.preventDefault();-->
+
+<!--            // Create FormData object to send file and technician name-->
+<!--            var formData = new FormData();-->
+<!--            formData.append('file', $('#image')[0].files[0]);-->
+<!--            formData.append('name', $('#name').val());-->
+
+<!--            // Make AJAX POST request to the API-->
+<!--            $.ajax({-->
+<!--                type: 'POST',-->
+<!--                url: 'http://localhost:8080/technician/store', // Change this URL to your API endpoint-->
+<!--                data: formData,-->
+<!--                processData: false,-->
+<!--                contentType: false,-->
+<!--                success: function (response) {-->
+<!--                    alert('Technician uploaded successfully!');-->
+<!--                    // Clear the form after successful upload-->
+<!--                    $('#uploadForm')[0].reset();-->
+<!--                },-->
+<!--                error: function (xhr, status, error) {-->
+<!--                    console.error(xhr.responseText);-->
+<!--                    alert('Error uploading technician. Please try again.');-->
+<!--                }-->
+<!--            });-->
+<!--        });-->
+<!--    });-->
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technicians</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+  <h1>Technicians</h1>
+  <div id="technicians" class="row">
+    <!-- Technician images will be dynamically added here -->
+  </div>
+</div>
+
+<script>
+    fetch('http://localhost:8080/technician')
+        .then(response => response.json())
+        .then(data => {
+            const technicians = data.content;
+
+            technicians.forEach(technician => {
+                // Parse the JSON string to extract the filePath
+                const imagePath = JSON.parse(technician.image).filePath;
+
+
+                // Construct the image URL using the modified imagePath
+                const imageUrl = '/img/technician/' + imagePath;
+
+                // Create card element for each technician
+                const card = document.createElement('div');
+                card.classList.add('col-md-4');
+
+                // Create card body
+                const cardBody = document.createElement('div');
+                cardBody.classList.add('card', 'mb-4', 'shadow-sm');
+
+                // Create image element
+                const image = document.createElement('img');
+                image.src = imageUrl;
+                image.classList.add('card-img-top');
+
+                // Append image to card body
+                cardBody.appendChild(image);
+
+                // Append card body to card
+                card.appendChild(cardBody);
+
+                // Append card to container
+                document.getElementById('technicians').appendChild(card);
+            });
+        })
+        .catch(error => console.error('Error fetching technicians:', error));
+</script>
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

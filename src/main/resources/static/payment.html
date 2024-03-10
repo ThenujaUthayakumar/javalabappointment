@@ -75,7 +75,7 @@
             <div class="col-lg-12">
                 <div class="breadcrumb_iner">
                     <div class="breadcrumb_iner_item">
-                        <h2>Technicians</h2>
+                        <h2>Payment</h2>
                     </div>
                 </div>
             </div>
@@ -84,23 +84,81 @@
 </section>
 <!-- breadcrumb start-->
 
-<!--::technician part start::-->
-<section class="doctor_part section_padding">
+<!-- ================ appointment section start ================= -->
+<section class="contact-section section_padding">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xl-8">
-                <div class="section_tittle text-center">
-                    <h2> Experienced Technicians</h2>
-                    <p>Face replenish sea good winged bearing years air divide wasHave night male also</p>
-                </div>
+        <div class="row">
+            <div class="col-12">
+                <h2 class="contact-title">Make Payment</h2>
             </div>
-        </div>
-        <div class="row" id="technicianList">
+            <div class="col-lg-12">
+                <div id="successMessage" class="alert alert-success" style="display: none;" role="alert">
+                    Your Appointment Successfully & You Will Get Your Payment Receipt Via Your E-mail !
+                </div>
+                <form class="form-contact contact_form" id="paymentForm"
+                      novalidate="novalidate">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label for="amount">Amount:</label>
+                                <input class="form-control" name="amount" id="amount" type="text" onfocus="this.placeholder = ''"
+                                       onblur="this.placeholder = 'Test Amount'" placeholder='Test Amount'>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <input class="form-control" name="cardHolderName" id="cardHolderName" type="text" onfocus="this.placeholder = ''"
+                                       onblur="this.placeholder = 'Card Holder Name'" placeholder='Card Holder Name'>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <input class="form-control" name="cardHolderPhoneNumber" id="cardHolderPhoneNumber" type="text" onfocus="this.placeholder = ''"
+                                       onblur="this.placeholder = 'Card Holder Mobile Number'" placeholder='Card Holder Mobile Number'>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <input class="form-control" name="cardNumber" id="cardNumber" type="text" onfocus="this.placeholder = ''"
+                                       onblur="this.placeholder = 'Card Number'" placeholder='Card Number' maxlength="19">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <input class="form-control" name="cvv" id="cvv" type="text" onfocus="this.placeholder = ''"
+                                       onblur="this.placeholder = 'Card CVV'" placeholder='Card CVV' maxlength="3">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <input class="form-control" name="expiryDate" id="expiryDate" type="month"
+                                       onfocus="this.placeholder = ''" onblur="this.placeholder = 'Expiry Date'"
+                                       placeholder="Expiry Date" pattern="\d{2}-\d{2}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mt-3">
+                        <button type="submit" class="button button-contactForm btn_1">Make an Appointment</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </section>
-<!--::technician part end::-->
+<!-- ================ appointment section end ================= -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
+<script>
+    document.getElementById('cardNumber').addEventListener('input', function (e) {
+        var target = e.target,
+            position = target.selectionEnd,
+            length = target.value.length;
+
+        target.value = target.value.replace(/[^\dA-Z]/g, '').replace(/(.{4})/g, '$1-').slice(0, 19);
+
+        target.selectionEnd = target.selectionStart = position += (target.value.charAt(position) === '-' ? 1 : 0);
+    });
+    </script>
 <!-- footer part start-->
 <footer class="footer-area">
     <div class="footer section_padding">
@@ -182,8 +240,8 @@
 <script src="js/jquery.form.js"></script>
 <script src="js/jquery.validate.min.js"></script>
 <script src="js/mail-script.js"></script>
-<script src="js/technician.js"></script>
 <script src="js/contact.js"></script>
+<script src="js/appointment.js"></script>
 <script src="js/custom.js"></script>
 </body>
 </html>
