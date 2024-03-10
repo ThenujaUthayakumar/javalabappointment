@@ -6,6 +6,7 @@ import com.javalabappointment.javalabappointment.service.AppointmentService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -39,6 +40,13 @@ public class AppointmentController {
                          @RequestParam(required = false) String orderBy, Appointment search,
                          @RequestParam Integer fileType, @RequestParam(required = false) String downloadColumn, HttpServletResponse response) throws IOException {
         appointmentService.download(skip, limit, orderBy, search,fileType, downloadColumn, response);
+    }
+
+    /*-------------------------------- DELETE API----------------------------------- */
+    @DeleteMapping("/delete")
+    public ResponseEntity delete (@RequestParam(required = true) Integer id)
+    {
+        return appointmentService.delete(id);
     }
 
 }

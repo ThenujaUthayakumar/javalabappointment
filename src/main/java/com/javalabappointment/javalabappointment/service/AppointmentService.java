@@ -19,6 +19,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -277,5 +279,12 @@ public class AppointmentService {
                 e.printStackTrace();
             }
         }
+    }
+
+    /*-------------------------------- DELETE API----------------------------------- */
+    public ResponseEntity<String> delete(Integer id)
+    {
+        appointmentRepository.deleteById(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Delete Successfully !");
     }
 }
