@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -108,5 +110,21 @@ public class PaymentController {
                          @RequestParam(required = false) String orderBy, Payment payment,
                          @RequestParam Integer fileType, @RequestParam(required = false) String downloadColumn, HttpServletResponse response) throws IOException {
         paymentService.download(skip, limit, orderBy, payment,fileType, downloadColumn, response);
+    }
+
+    /*-------------------------------- DELETE API----------------------------------- */
+    @DeleteMapping("/delete")
+    public ResponseEntity delete (@RequestParam(required = true) Integer id)
+    {
+        return paymentService.delete(id);
+    }
+
+    /*------------------------- STATISTICS ------------------*/
+    @GetMapping("/statistics")
+    public Page<Map<Object,String>> getStatistics(@RequestParam(required = false) Integer skip,
+                                                  @RequestParam(required = false) Integer limit,
+                                                  @RequestParam(required = false) String orderBy,
+                                                  Payment payment) {
+        return paymentService.getStatistics(skip,limit,orderBy,payment);
     }
 }

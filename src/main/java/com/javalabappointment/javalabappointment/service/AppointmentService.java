@@ -25,8 +25,13 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -257,7 +262,21 @@ public class AppointmentService {
                             table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getPhoneNumber() != null ? emp.getPhoneNumber().toString() : "N/A")));
                         }
                         if (col.matches("appointment_date_time")) {
-                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getAppointmentDateTime() != null ? emp.getAppointmentDateTime().toString() : "N/A")));
+                            String dateTime = emp.getAppointmentDateTime();
+                            String formattedCreatedAt = "N/A";
+
+                            if (dateTime != null) {
+                                try {
+                                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+                                    Date appointmentDateTime = dateFormat.parse(dateTime);
+                                    SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                                    formattedCreatedAt = outputFormat.format(appointmentDateTime);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(formattedCreatedAt)));
                         }
                         TestEntity testEntity=testRepository.findById(Integer.valueOf(emp.getTestId().getId())).orElse(null);
                         if (col.matches("test_id")) {
@@ -286,5 +305,52 @@ public class AppointmentService {
     {
         appointmentRepository.deleteById(id);
         return ResponseEntity.status(HttpStatus.OK).body("Delete Successfully !");
+    }
+
+    /*------------------------- STATISTICS ------------------*/
+    public Page<Map<Object,String>> getStatistics(Integer pageNo, Integer pageSize, String orderBy, Appointment appointment) {
+        Pageable pageable = null;
+        List<Sort.Order> sorts = new ArrayList<>();
+        if (orderBy != null) {
+            String[] split = orderBy.split("&");
+            for (String s : split) {
+                String[] orders = s.split(",");
+                sorts.add(new Sort.Order(Sort.Direction.valueOf(orders[1]), orders[0]));
+            }
+        }
+        if (pageNo != null && pageSize != null) {
+            if (orderBy != null) {
+                pageable = PageRequest.of(pageNo, pageSize, Sort.by(sorts));
+            } else {
+                pageable = PageRequest.of(pageNo, pageSize);
+            }
+        } else {
+            if (orderBy != null) {
+                pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(sorts));
+            }
+        }
+
+        String searchLike = null;
+        if(appointment.getSearch() != null){
+            searchLike = "%"+appointment.getSearch()+"%";
+        }
+
+        Page<Map<Object,String>> appointmentEntities;
+
+        appointmentEntities=appointmentRepository.findStatistics(pageable,
+                appointment.getId(),
+                appointment.getName(),
+                appointment.getAddress(),
+                appointment.getEmail(),
+                appointment.getAge(),
+                appointment.getReferenceNumber(),
+                appointment.getPhoneNumber(),
+                appointment.getAppointmentDateTime(),
+                appointment.getTestId(),
+                appointment.getDoctorName(),
+                searchLike,
+                appointment.getGender());
+
+        return appointmentEntities;
     }
 }
