@@ -6,10 +6,7 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.property.UnitValue;
-import com.javalabappointment.javalabappointment.entity.AppointmentEntity;
 import com.javalabappointment.javalabappointment.entity.ContactEntity;
-import com.javalabappointment.javalabappointment.entity.TestEntity;
-import com.javalabappointment.javalabappointment.persist.Appointment;
 import com.javalabappointment.javalabappointment.persist.Contact;
 import com.javalabappointment.javalabappointment.repository.ContactRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,10 +17,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,14 +119,14 @@ public class ContactService {
         if (downloadColumn != null) {
             requiredColumns = downloadColumn.split(",");
         } else {
-            requiredColumns = new String[]{"id","name","address","phoneNumber","message"};
+            requiredColumns = new String[]{"id","name","address","phoneNumber","message","created_at"};
         }
 
         List<String> columnNames = new ArrayList<>();
 
         for (String columns : requiredColumns) {
             if (columns.matches("id")) {
-                columnNames.add("Appointment No");
+                columnNames.add("Contact ID");
             }
             if (columns.matches("name")) {
                 columnNames.add("Contactor Name");
@@ -138,6 +139,9 @@ public class ContactService {
             }
             if (columns.matches("message")) {
                 columnNames.add("Contactor Message");
+            }
+            if (columns.matches("created_at")) {
+                columnNames.add("Contact Date");
             }
         }
         if (fileType == 1) {
@@ -181,6 +185,21 @@ public class ContactService {
                         if (col.matches("message")) {
                             table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getMessage() != null ? emp.getMessage().toString() : "N/A")));
                         }
+                        if (col.matches("created_at")) {
+                            LocalDateTime createdAtDateTime = emp.getCreatedAt();
+                            String formattedCreatedAt = "N/A";
+
+                            if (createdAtDateTime != null) {
+                                try {
+                                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                                    formattedCreatedAt = createdAtDateTime.format(formatter);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(formattedCreatedAt)));
+                        }
                     }
                 }
                 document.add(table);
@@ -191,5 +210,12 @@ public class ContactService {
                 e.printStackTrace();
             }
         }
+    }
+
+    /*-------------------------------- DELETE API----------------------------------- */
+    public ResponseEntity<String> delete(Integer id)
+    {
+        contactRepository.deleteById(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Delete Successfully !");
     }
 }

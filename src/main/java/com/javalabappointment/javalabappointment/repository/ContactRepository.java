@@ -1,10 +1,10 @@
 package com.javalabappointment.javalabappointment.repository;
 
 import com.javalabappointment.javalabappointment.entity.ContactEntity;
-import com.javalabappointment.javalabappointment.entity.TestEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface ContactRepository extends JpaRepository<ContactEntity,Integer> {
@@ -24,4 +24,8 @@ public interface ContactRepository extends JpaRepository<ContactEntity,Integer> 
         """, nativeQuery = true)
     Page<ContactEntity> findAllContact(Pageable pageable, Integer id, String name, String address,
                                                String phoneNumber, String message, String search);
+
+    @Modifying
+    @Query(value = "DELETE FROM contacts WHERE id =?1",nativeQuery = true)
+    void deleteById(Integer id);
 }

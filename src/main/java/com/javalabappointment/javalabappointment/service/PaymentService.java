@@ -25,29 +25,27 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.itextpdf.io.font.FontConstants;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
-import com.itextpdf.kernel.geom.PageSize;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.property.TextAlignment;
-import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -203,7 +201,7 @@ public class PaymentService {
             requiredColumns = downloadColumn.split(",");
         } else {
             requiredColumns = new String[]{"id","name","phoneNumber","patientName","patientNumber",
-            "referenceNo","test","amount","status"};
+            "referenceNo","test","amount","status","created_at"};
         }
 
         List<String> columnNames = new ArrayList<>();
@@ -211,6 +209,9 @@ public class PaymentService {
         for (String columns : requiredColumns) {
             if (columns.matches("id")) {
                 columnNames.add("Payment No");
+            }
+            if (columns.matches("referenceNo")) {
+                columnNames.add("Invoice No");
             }
             if (columns.matches("name")) {
                 columnNames.add("Payer Name");
@@ -224,9 +225,6 @@ public class PaymentService {
             if (columns.matches("patientNumber")) {
                 columnNames.add("Patient Mobile Number");
             }
-            if (columns.matches("referenceNo")) {
-                columnNames.add("Invoice No");
-            }
             if (columns.matches("test")) {
                 columnNames.add("Test");
             }
@@ -235,6 +233,9 @@ public class PaymentService {
             }
             if (columns.matches("status")) {
                 columnNames.add("Status");
+            }
+            if (columns.matches("created_at")) {
+                columnNames.add("Paid Date");
             }
         }
         if (fileType == 1) {
@@ -269,6 +270,9 @@ public class PaymentService {
                         if (col.matches("id")) {
                             table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getId() != null ? emp.getId().toString() : "")));
                         }
+                        if (col.matches("referenceNo")) {
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getReferenceNumber() != null ? emp.getReferenceNumber().toString() : "")));
+                        }
                         if (col.matches("name")) {
                             table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getCardHolderName() != null ? emp.getCardHolderName() : "")));
                         }
@@ -281,9 +285,6 @@ public class PaymentService {
                         if (col.matches("patientNumber")) {
                             table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(appointmentEntity.getPhoneNumber() != null ? appointmentEntity.getPhoneNumber().toString() : "")));
                         }
-                        if (col.matches("referenceNo")) {
-                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getReferenceNumber() != null ? emp.getReferenceNumber().toString() : "")));
-                        }
                         if (col.matches("test")) {
                             table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(testEntity.getName() != null ? testEntity.getName().toString() : "")));
                         }
@@ -291,13 +292,28 @@ public class PaymentService {
                             table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getAmount() != null ? emp.getAmount().toString() : "")));
                         }
                         if (col.matches("status")) {
-                            String status="Payment Success";
-                            if (emp.getStatus()==1)
-                            {
+                            String status = "Paid";
+                            if (emp.getStatus() == 1) {
                                 table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(status != null ? status.toString() : "")));
                             }
                         }
+                        if (col.matches("created_at")) {
+                            LocalDateTime createdAtDateTime = emp.getCreatedAt();
+                            String formattedCreatedAt = "N/A";
+
+                            if (createdAtDateTime != null) {
+                                try {
+                                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                                    formattedCreatedAt = createdAtDateTime.format(formatter);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
+                            table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(formattedCreatedAt)));
+                        }
                     }
+
                 }
                 document.add(table);
                 document.close();
@@ -425,5 +441,53 @@ public class PaymentService {
         } catch (IOException e) {
             System.err.println("Failed to load logo image: " + e.getMessage());
         }
+    }
+
+    /*-------------------------------- DELETE API----------------------------------- */
+    public ResponseEntity<String> delete(Integer id)
+    {
+        paymentRepository.deleteById(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Delete Successfully !");
+    }
+
+    /*------------------------- STATISTICS ------------------*/
+    public Page<Map<Object,String>> getStatistics(Integer pageNo, Integer pageSize, String orderBy, Payment payment) {
+        Pageable pageable = null;
+        List<Sort.Order> sorts = new ArrayList<>();
+        if (orderBy != null) {
+            String[] split = orderBy.split("&");
+            for (String s : split) {
+                String[] orders = s.split(",");
+                sorts.add(new Sort.Order(Sort.Direction.valueOf(orders[1]), orders[0]));
+            }
+        }
+        if (pageNo != null && pageSize != null) {
+            if (orderBy != null) {
+                pageable = PageRequest.of(pageNo, pageSize, Sort.by(sorts));
+            } else {
+                pageable = PageRequest.of(pageNo, pageSize);
+            }
+        } else {
+            if (orderBy != null) {
+                pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(sorts));
+            }
+        }
+
+        String searchLike = null;
+        if(payment.getSearch() != null){
+            searchLike = "%"+payment.getSearch()+"%";
+        }
+
+        Page<Map<Object,String>> paymentEntities;
+
+        paymentEntities=paymentRepository.findStatistics(pageable,
+                payment.getId(),
+                payment.getAmount(),
+                payment.getAppointmentId(),
+                payment.getReferenceNumber(),
+                payment.getStatus(),
+                searchLike);
+
+        return paymentEntities;
     }
 }

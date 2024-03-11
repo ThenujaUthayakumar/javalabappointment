@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -49,4 +50,12 @@ public class AppointmentController {
         return appointmentService.delete(id);
     }
 
+    /*------------------------- STATISTICS ------------------*/
+    @GetMapping("/statistics")
+    public Page<Map<Object,String>> getStatistics(@RequestParam(required = false) Integer skip,
+                                                  @RequestParam(required = false) Integer limit,
+                                                  @RequestParam(required = false) String orderBy,
+                                                  Appointment appointment) {
+        return appointmentService.getStatistics(skip,limit,orderBy,appointment);
+    }
 }
