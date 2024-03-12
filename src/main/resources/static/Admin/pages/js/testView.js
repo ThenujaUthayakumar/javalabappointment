@@ -2,11 +2,11 @@ $(document).ready(function() {
     var currentPage = 0;
     var pageSize = 10;
     var totalPages = 0;
-    var contactsData = [];
+    var testsData = [];
 
-    function fetchContacts(searchKeyword) {
+    function fetchTests(searchKeyword) {
         $.ajax({
-            url: 'http://localhost:8080/contact?orderBy=created_at,DESC',
+            url: 'http://localhost:8080/test?orderBy=created_at,DESC',
             method: 'GET',
             dataType: 'json',
             data: {
@@ -16,8 +16,8 @@ $(document).ready(function() {
             success: function(data) {
                 console.log('Data received:', data);
                 if (Array.isArray(data.content)) {
-                    contactsData = data.content;
-                    renderContacts(currentPage);
+                    testsData = data.content;
+                    renderTests(currentPage);
                 } else {
                     console.error('Data is not in the expected format:', data);
                 }
@@ -28,40 +28,30 @@ $(document).ready(function() {
         });
     }
 
-    function renderContacts(page) {
+    function renderTests(page) {
         currentPage = page;
 
         var startIndex = page * pageSize;
         var endIndex = startIndex + pageSize;
-        var contactsToShow = contactsData.slice(startIndex, endIndex);
-        $('#contactTable tbody').empty();
+        var contactsToShow = testsData.slice(startIndex, endIndex);
+        $('#testTable tbody').empty();
         contactsToShow.forEach(function(record) {
             var newRow = $('<tr>');
             newRow.append('<td>' + record.name + '</td>');
-            newRow.append('<td>' + record.phoneNumber + '</td>');
-            newRow.append('<td>' + record.address + '</td>');
-            newRow.append('<td>' + record.message + '</td>');
-            var createdAt = new Date(record.createdAt);
-            var formattedCreatedAt = createdAt.getFullYear() + '-' +
-                ('0' + (createdAt.getMonth() + 1)).slice(-2) + '-' +
-                ('0' + createdAt.getDate()).slice(-2) + ' ' +
-                ('0' + createdAt.getHours()).slice(-2) + ':' +
-                ('0' + createdAt.getMinutes()).slice(-2) + ':' +
-                ('0' + createdAt.getSeconds()).slice(-2);
-            newRow.append('<td>' + formattedCreatedAt + '</td>');
-
-            newRow.append('<td><i class="mdi mdi-trash-can-outline delete-icon" style="color:red;" data-contact-id="' + record.id + '"></i></td>');
-            $('#contactTable tbody').append(newRow);
+            newRow.append('<td>' + record.description + '</td>');
+            newRow.append('<td>' + 'රු ' +record.cost + '</td>');
+            newRow.append('<td><i class="mdi mdi-pencil-outline delete-icon" style="color:blue;" data-test-id="' + record.id + '"></i><i class="mdi mdi-trash-can-outline delete-icon" style="color:red;" data-test-id="' + record.id + '"></i></td>');
+            $('#testTable tbody').append(newRow);
         });
 
-        totalPages = Math.ceil(contactsData.length / pageSize);
+        totalPages = Math.ceil(testsData.length / pageSize);
         updatePagination();
     }
 
     $('#pagination').on('click', 'a.page-link', function(e) {
         e.preventDefault();
         var page = $(this).data('page');
-        renderContacts(page);
+        renderTests(page);
     });
 
     function updatePagination() {
@@ -74,11 +64,11 @@ $(document).ready(function() {
         $('#pagination').html(paginationHtml);
     }
 
-    fetchContacts('');
+    fetchTests('');
 
     $('#searchInput').on('input', function() {
         var searchKeyword = $(this).val();
-        fetchContacts(searchKeyword);
+        fetchTests(searchKeyword);
     });
 
     function showDeleteMessage(message, type) {
@@ -91,10 +81,10 @@ $(document).ready(function() {
     }
 
     $(document).on('click', '.delete-icon', function() {
-        var contactId = $(this).data('contact-id');
+        var contactId = $(this).data('test-id');
         var row = $(this).closest('tr');
         $.ajax({
-            url: 'http://localhost:8080/contact/delete?id=' + contactId,
+            url: 'http://localhost:8080/test/delete?id=' + contactId,
             method: 'DELETE',
             success: function(response) {
                 console.log('contact deleted successfully:', response);
@@ -108,10 +98,10 @@ $(document).ready(function() {
         });
     });
 
-    $('#contactDownload').click(function(e) {
+    $('#testDownload').click(function(e) {
         e.preventDefault();
         var searchKeyword = $('#searchInput').val();
-        var downloadUrl = 'http://localhost:8080/contact/download?fileType=1';
+        var downloadUrl = 'http://localhost:8080/test/download?fileType=1';
         if (searchKeyword) {
             downloadUrl += '&search=' + encodeURIComponent(searchKeyword);
         }

@@ -29,8 +29,24 @@ $(document).ready(function() {
             });
         }
 
+                function fetchTotalContacts() {
+                    $.ajax({
+                        url: 'http://localhost:8080/contact/statistics',
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                            var totalContacts = data.content[0].totalContacts;
+                            $('#totalContacts').text(totalContacts);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error fetching total contact:', error);
+                        }
+                    });
+                }
+
     $(document).ready(function() {
         fetchTotalAppointments();
         fetchTotalIncomes();
+        fetchTotalContacts();
     });
 });
