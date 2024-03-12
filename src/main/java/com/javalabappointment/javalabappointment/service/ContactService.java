@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -217,5 +218,46 @@ public class ContactService {
     {
         contactRepository.deleteById(id);
         return ResponseEntity.status(HttpStatus.OK).body("Delete Successfully !");
+    }
+
+
+    public Page<Map<Object,String>> getStatistics(Integer pageNo, Integer pageSize, String orderBy, Contact contact) {
+        Pageable pageable = null;
+        List<Sort.Order> sorts = new ArrayList<>();
+        if (orderBy != null) {
+            String[] split = orderBy.split("&");
+            for (String s : split) {
+                String[] orders = s.split(",");
+                sorts.add(new Sort.Order(Sort.Direction.valueOf(orders[1]), orders[0]));
+            }
+        }
+        if (pageNo != null && pageSize != null) {
+            if (orderBy != null) {
+                pageable = PageRequest.of(pageNo, pageSize, Sort.by(sorts));
+            } else {
+                pageable = PageRequest.of(pageNo, pageSize);
+            }
+        } else {
+            if (orderBy != null) {
+                pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(sorts));
+            }
+        }
+
+        String searchLike = null;
+        if(contact.getSearch() != null){
+            searchLike = "%"+contact.getSearch()+"%";
+        }
+
+        Page<Map<Object,String>> contactEntities;
+
+        contactEntities=contactRepository.findStatistics(pageable,
+                contact.getId(),
+                contact.getName(),
+                contact.getAddress(),
+                contact.getPhoneNumber(),
+                contact.getMessage(),
+                searchLike);
+
+        return contactEntities;
     }
 }

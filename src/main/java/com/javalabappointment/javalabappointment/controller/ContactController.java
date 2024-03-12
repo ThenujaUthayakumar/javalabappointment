@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,5 +47,14 @@ public class ContactController {
     public ResponseEntity delete (@RequestParam(required = true) Integer id)
     {
         return contactService.delete(id);
+    }
+
+    /*------------------------- STATISTICS ------------------*/
+    @GetMapping("/statistics")
+    public Page<Map<Object,String>> getStatistics(@RequestParam(required = false) Integer skip,
+                                                  @RequestParam(required = false) Integer limit,
+                                                  @RequestParam(required = false) String orderBy,
+                                                  Contact contact) {
+        return contactService.getStatistics(skip,limit,orderBy,contact);
     }
 }
