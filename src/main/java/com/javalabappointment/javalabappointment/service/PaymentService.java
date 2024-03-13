@@ -76,48 +76,48 @@ public class PaymentService {
     public PaymentEntity store(Payment payment) throws ParseException {
         PaymentEntity paymentEntity=new PaymentEntity();
 
-//        if(payment.getAmount() == null)
-//        {
-//            throw new IllegalStateException("Please Enter Payment Amount !");
-//        }
-//
-//        String cardNumberString = String.valueOf(payment.getCardNumber());
-//        if(payment.getCardNumber() == null || cardNumberString.length()!=16)
-//        {
-//            throw new IllegalStateException("Please Enter Your Card Number !");
-//        }
-//
-//        String cvvString = String.valueOf(payment.getCvv());
-//        if(payment.getCvv() == null || cvvString.length()!=3)
-//        {
-//            throw new IllegalStateException("Please Enter Your Card CVV Number !");
-//        }
-//
-//        if(payment.getExpiryDate() == null || payment.getExpiryDate().isEmpty())
-//        {
-//            throw new IllegalStateException("Please Enter Your Card Expiry Date !");
-//        }
-//
-//        if(payment.getCardHolderName() == null || payment.getCardHolderName().isEmpty())
-//        {
-//            throw new IllegalStateException("Please Enter Your Name Of Card !");
-//        }
-//
-//        if(payment.getCardHolderPhoneNumber() == null || payment.getCardHolderPhoneNumber().isEmpty())
-//        {
-//            throw new IllegalStateException("Please Enter Your OTP Get Mobile Number !");
-//        }
-//
-//        AppointmentEntity appointmentEntity=appointmentRepository.findById(payment.getAppointmentId().getId()).orElse(null);
-//        if (appointmentEntity==null)
-//        {
-//            throw new IllegalStateException("Patient Not Found !");
-//        }
-//
-//        PaymentEntity existingPayment = paymentRepository.findByAppointmentId(payment.getAppointmentId());
-//        if (existingPayment != null) {
-//            throw new IllegalStateException("Payment for this appointment already exists !");
-//        }
+        if(payment.getAmount() == null)
+        {
+            throw new IllegalStateException("Please Enter Payment Amount !");
+        }
+
+        String cardNumberString = String.valueOf(payment.getCardNumber());
+        if(payment.getCardNumber() == null || cardNumberString.length()!=16)
+        {
+            throw new IllegalStateException("Please Enter Your Card Number !");
+        }
+
+        String cvvString = String.valueOf(payment.getCvv());
+        if(payment.getCvv() == null || cvvString.length()!=3)
+        {
+            throw new IllegalStateException("Please Enter Your Card CVV Number !");
+        }
+
+        if(payment.getExpiryDate() == null || payment.getExpiryDate().isEmpty())
+        {
+            throw new IllegalStateException("Please Enter Your Card Expiry Date !");
+        }
+
+        if(payment.getCardHolderName() == null || payment.getCardHolderName().isEmpty())
+        {
+            throw new IllegalStateException("Please Enter Your Name Of Card !");
+        }
+
+        if(payment.getCardHolderPhoneNumber() == null || payment.getCardHolderPhoneNumber().isEmpty())
+        {
+            throw new IllegalStateException("Please Enter Your OTP Get Mobile Number !");
+        }
+
+        AppointmentEntity appointmentEntity=appointmentRepository.findById(payment.getAppointmentId().getId()).orElse(null);
+        if (appointmentEntity==null)
+        {
+            throw new IllegalStateException("Patient Not Found !");
+        }
+
+        PaymentEntity existingPayment = paymentRepository.findByAppointmentId(payment.getAppointmentId());
+        if (existingPayment != null) {
+            throw new IllegalStateException("Payment for this appointment already exists !");
+        }
 
         paymentEntity.setAppointmentId(payment.getAppointmentId());
         paymentEntity.setAmount(payment.getAmount());
@@ -200,8 +200,8 @@ public class PaymentService {
         if (downloadColumn != null) {
             requiredColumns = downloadColumn.split(",");
         } else {
-            requiredColumns = new String[]{"id","name","phoneNumber","patientName","patientNumber",
-            "referenceNo","test","amount","status","created_at"};
+            requiredColumns = new String[]{"id","referenceNo","name","phoneNumber","patientName","patientNumber",
+                    "test","amount","status","created_at"};
         }
 
         List<String> columnNames = new ArrayList<>();

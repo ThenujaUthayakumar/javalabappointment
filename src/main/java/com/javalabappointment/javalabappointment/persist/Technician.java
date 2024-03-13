@@ -17,4 +17,5 @@ public class Technician {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String search;
+    private String joinDate;
 }

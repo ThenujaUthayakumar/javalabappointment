@@ -1,5 +1,11 @@
-        $(document).ready(function() {
-            // Initialize form validation
+$(document).ready(function(){
+    (function($) {
+        "use strict";
+    jQuery.validator.addMethod('answercheck', function (value, element) {
+        return this.optional(element) || /^\bcat\b$/.test(value)
+    }, "type the correct answer -_-");
+
+    $(function() {
             $('#createTest').validate({
                 rules: {
                     name: {
@@ -8,7 +14,7 @@
                     },
                     description: {
                         required: true,
-                        minlength: 2
+                        minlength: 1
                     },
                     cost: {
                         required: true,
@@ -31,7 +37,6 @@
                 },
                 errorClass: "text-danger",
                 submitHandler: function(form) {
-                    // Form submission logic
                     var formData = {
                         name: $('#name').val(),
                         description: $('#description').val(),
@@ -43,16 +48,19 @@
                         url: "http://localhost:8080/test/store",
                         data: JSON.stringify(formData),
                         success: function(response) {
-                            // Handle success response
                             $('#successMessage').text('New Test Created Successfully !').fadeIn();
                             form.reset();
+                                    setTimeout(function() {
+                                        window.location.href = "../test.html";
+                                    }, 2000);
                         },
                         error: function(xhr, status, error) {
-                            // Handle error response
                             console.error(xhr.responseText);
                         }
                     });
-                    return false; // Prevent default form submission
+                    return false;
                 }
             });
-        });
+    })
+ })(jQuery)
+})

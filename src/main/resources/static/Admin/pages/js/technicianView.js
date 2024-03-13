@@ -2,11 +2,11 @@ $(document).ready(function() {
     var currentPage = 0;
     var pageSize = 10;
     var totalPages = 0;
-    var testsData = [];
+    var techniciansData = [];
 
-    function fetchTests(searchKeyword) {
+    function fetchTechnicians(searchKeyword) {
         $.ajax({
-            url: 'http://localhost:8080/test?orderBy=created_at,DESC',
+            url: 'http://localhost:8080/technician?orderBy=created_at,DESC',
             method: 'GET',
             dataType: 'json',
             data: {
@@ -16,8 +16,8 @@ $(document).ready(function() {
             success: function(data) {
                 console.log('Data received:', data);
                 if (Array.isArray(data.content)) {
-                    testsData = data.content;
-                    renderTests(currentPage);
+                    techniciansData = data.content;
+                    renderTechnicians(currentPage);
                 } else {
                     console.error('Data is not in the expected format:', data);
                 }
@@ -28,32 +28,62 @@ $(document).ready(function() {
         });
     }
 
-    function renderTests(page) {
+    function renderTechnicians(page) {
         currentPage = page;
 
         var startIndex = page * pageSize;
         var endIndex = startIndex + pageSize;
-        var contactsToShow = testsData.slice(startIndex, endIndex);
-        $('#testTable tbody').empty();
+        var contactsToShow = techniciansData.slice(startIndex, endIndex);
+        $('#technicianTable tbody').empty();
         contactsToShow.forEach(function(record) {
             var newRow = $('<tr>');
-            newRow.append('<td>' + record.code + '</td>');
             newRow.append('<td>' + record.name + '</td>');
-            newRow.append('<td>' + record.description + '</td>');
-            newRow.append('<td>' + 'රු ' +record.cost + '</td>');
-            newRow.append('<td><a href="./create_codes/updateTest.html?id=' + record.id + '"><i class="mdi mdi-pencil-outline edit-icon" style="color:blue;"></i></a><i class="mdi mdi-trash-can-outline delete-icon" style="color:red;" data-test-id="' + record.id + '"></i></td>');
-            $('#testId').val(record.id);
-            $('#testTable tbody').append(newRow);
+            newRow.append('<td>' + record.phoneNumber + '</td>');
+            newRow.append('<td>' + record.address + '</td>');
+            newRow.append('<td>' + record.email + '</td>');
+            newRow.append('<td>' + record.position + '</td>');
+            newRow.append('<td>' + record.joinDate + '</td>');
+            const imagePath = JSON.parse(record.image).filePath;
+            const imageUrl = 'http://localhost:8080/img/technician/' + imagePath;
+            newRow.append('<td><i class="mdi mdi-eye show-image-icon" style="color:blue;" data-image-url="' + imageUrl + '"></i></td>');
+            newRow.append('<td><i class="mdi mdi-trash-can-outline delete-icon" style="color:red;" data-contact-id="' + record.id + '"></i></td>');
+            $('#technicianTable tbody').append(newRow);
         });
+            $(document).on('click', '.show-image-icon', function() {
+                var imageUrl = $(this).data('image-url');
+                if (imageUrl) {
+                    showImage(imageUrl);
+                }
+            });
+            function showImage(imageUrl) {
+                var modalContent = '<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">' +
+                                      '<div class="modal-dialog">' +
+                                        '<div class="modal-content">' +
+                                          '<div class="modal-header">' +
+                                            '<h5 class="modal-title" id="exampleModalLabel">Technician Profile</h5>' +
+                                            '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>' +
+                                          '</div>' +
+                                          '<div class="modal-body">' +
+                                            '<img src="' + imageUrl + '" class="img-fluid">' +
+                                          '</div>' +
+                                        '</div>' +
+                                      '</div>' +
+                                    '</div>';
 
-        totalPages = Math.ceil(testsData.length / pageSize);
+                $('body').append(modalContent);
+                $('#imageModal').modal('show');
+                $('#imageModal').on('hidden.bs.modal', function () {
+                    $(this).remove();
+                });
+            }
+        totalPages = Math.ceil(techniciansData.length / pageSize);
         updatePagination();
     }
 
     $('#pagination').on('click', 'a.page-link', function(e) {
         e.preventDefault();
         var page = $(this).data('page');
-        renderTests(page);
+        renderTechnicians(page);
     });
 
     function updatePagination() {
@@ -66,11 +96,11 @@ $(document).ready(function() {
         $('#pagination').html(paginationHtml);
     }
 
-    fetchTests('');
+    fetchTechnicians('');
 
     $('#searchInput').on('input', function() {
         var searchKeyword = $(this).val();
-        fetchTests(searchKeyword);
+        fetchTechnicians(searchKeyword);
     });
 
     function showDeleteMessage(message, type) {
@@ -83,10 +113,10 @@ $(document).ready(function() {
     }
 
     $(document).on('click', '.delete-icon', function() {
-        var contactId = $(this).data('test-id');
+        var contactId = $(this).data('contact-id');
         var row = $(this).closest('tr');
         $.ajax({
-            url: 'http://localhost:8080/test/delete?id=' + contactId,
+            url: 'http://localhost:8080/technician/delete?id=' + contactId,
             method: 'DELETE',
             success: function(response) {
                 console.log('contact deleted successfully:', response);
@@ -100,10 +130,10 @@ $(document).ready(function() {
         });
     });
 
-    $('#testDownload').click(function(e) {
+    $('#technicianDownload').click(function(e) {
         e.preventDefault();
         var searchKeyword = $('#searchInput').val();
-        var downloadUrl = 'http://localhost:8080/test/download?fileType=1';
+        var downloadUrl = 'http://localhost:8080/technician/download?fileType=1';
         if (searchKeyword) {
             downloadUrl += '&search=' + encodeURIComponent(searchKeyword);
         }

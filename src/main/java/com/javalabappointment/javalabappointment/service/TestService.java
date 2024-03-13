@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import com.itextpdf.layout.Document;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -32,9 +35,6 @@ public class TestService {
     public TestService(TestRepository testRepository) {
         this.testRepository = testRepository;
     }
-
-//    @Autowired
-//    private JavaMailSender mailSender;
 
     /*------------------------- CREATE TEST LISTS --------------------------------  */
     @Transactional
@@ -59,9 +59,25 @@ public class TestService {
         testEntity.setName(test.getName());
         testEntity.setDescription(test.getDescription());
         testEntity.setCost(test.getCost());
+        testEntity.setCode(this.getTestCode());
 
         return testRepository.save(testEntity);
     }
+
+    /*------------------------------------ TEST CODE --------------------------*/
+    public String getTestCode(){
+        String testCode=testRepository.findTestCode();
+        if(testCode==null){
+            return "TEST1";
+        }
+        else{
+            String[] splitString=testCode.split("TEST");
+            int newReferenceNumber=Integer.valueOf(splitString[1])+1;
+            String finalReferenceNumber="TEST"+newReferenceNumber;
+            return finalReferenceNumber;
+        }
+    }
+
 
     /*------------------------------ GET ALL TEST LISTS --------------------------------  */
     public Page<TestEntity> getAllTest (Integer pageNo,Integer pageSize,String orderBy,Test test) {
@@ -206,5 +222,51 @@ public class TestService {
                 e.printStackTrace();
             }
         }
+    }
+
+    /*-------------------------------- DELETE API----------------------------------- */
+    public ResponseEntity<String> delete(Integer id)
+    {
+        testRepository.deleteById(id);
+        return ResponseEntity.status(HttpStatus.OK).body("Delete Successfully !");
+    }
+
+    public Page<Map<Object,String>> getStatistics (Integer pageNo, Integer pageSize, String orderBy, Test test) {
+        Pageable pageable = null;
+        List<Sort.Order> sorts = new ArrayList<>();
+        if (orderBy != null) {
+            String[] split = orderBy.split("&");
+            for (String s : split) {
+                String[] orders = s.split(",");
+                sorts.add(new Sort.Order(Sort.Direction.valueOf(orders[1]), orders[0]));
+            }
+        }
+        if (pageNo != null && pageSize != null) {
+            if (orderBy != null) {
+                pageable = PageRequest.of(pageNo, pageSize, Sort.by(sorts));
+            } else {
+                pageable = PageRequest.of(pageNo, pageSize);
+            }
+        } else {
+            if (orderBy != null) {
+                pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(sorts));
+            }
+        }
+
+        String searchLike = null;
+        if(test.getSearch() != null){
+            searchLike = "%"+test.getSearch()+"%";
+        }
+
+        Page<Map<Object,String>>  testEntities;
+
+        testEntities=testRepository.findStatistics(pageable,
+                test.getId(),
+                test.getName(),
+                test.getDescription(),
+                test.getCost(),
+                searchLike);
+
+        return testEntities;
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -50,5 +51,21 @@ public class TestController {
                             @RequestParam(required = false) String orderBy,Test search,
                             @RequestParam Integer fileType, @RequestParam(required = false) String downloadColumn, HttpServletResponse response) throws IOException {
         testService.download(skip, limit, orderBy, search,fileType, downloadColumn, response);
+    }
+
+    /*-------------------------------- DELETE API----------------------------------- */
+    @DeleteMapping("/delete")
+    public ResponseEntity delete (@RequestParam(required = true) Integer id)
+    {
+        return testService.delete(id);
+    }
+
+    /*------------------------- STATISTICS ------------------*/
+    @GetMapping("/statistics")
+    public Page<Map<Object,String>> getStatistics(@RequestParam(required = false) Integer skip,
+                                                  @RequestParam(required = false) Integer limit,
+                                                  @RequestParam(required = false) String orderBy,
+                                                  Test test) {
+        return testService.getStatistics(skip,limit,orderBy,test);
     }
 }
