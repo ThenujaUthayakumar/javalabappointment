@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="../../assets/css/vertical-layout-light/style.css">
     <link rel="shortcut icon" href="../../assets/images/logo.png" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="../js/create.js"></script>
+    <script src="../js/update.js"></script>
 </head>
 <body class="with-welcome-text">
 <div class="container-scroller">
@@ -121,9 +121,10 @@
                             <div class="card-body">
                                 <h4 class="card-title">Create New Test</h4>
                                 <div id="successMessage" class="alert alert-success" style="display: none;" role="alert">
-                                    New Test Created Successfully !
+                                    Test Edited Successfully !
                                 </div>
-                                <form class="forms-sample" id="createTest" novalidate="novalidate">
+                                <form class="forms-sample" id="updateTest" novalidate="novalidate">
+                                    <input type="hidden" id="testId" value="">
                                     <div class="form-group">
                                         <label for="name">Test Name</label>
                                         <input type="text" class="form-control" id="name" name="name" placeholder="Test Name">

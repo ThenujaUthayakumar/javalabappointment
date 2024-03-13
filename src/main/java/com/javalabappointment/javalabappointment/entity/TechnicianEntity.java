@@ -38,6 +38,9 @@ public class TechnicianEntity {
     @Column(name="image",columnDefinition = "json")
     private String image;
 
+    @Column(name="join_date")
+    private String joinDate;
+
     @CreationTimestamp
     @Column(name="created_at")
     private LocalDateTime createdAt;

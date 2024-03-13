@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class Test {
     private Integer id;
     private String name;
+    private String code;
     private String description;
     private Integer cost;
     private LocalDateTime createdAt;
