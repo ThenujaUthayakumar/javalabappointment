@@ -44,7 +44,7 @@ public class PaymentController {
 
                 if (recipientEmail != null) {
                     String subject = "Payment Receipt and Appointment Confirmation";
-                    String message = "Dear";
+                    String message = "Dear ";
 
                     for (PaymentEntity payments : appointment) {
                         String patientName = payments.getAppointmentId().getName();
@@ -55,7 +55,7 @@ public class PaymentController {
 
                     message += "\n\n"
                             + "Location: ABC Laboratory, Wijerama Mawatha, Colombo 07\n\n"
-                            + "Please ensure that you arrive 30 Minutes before your appointment time to complete any necessary paperwork and prepare for your testing.\n\n"
+                            + "Please ensure that you arrive 2 Hours before your appointment time to complete any necessary paperwork and prepare for your testing.\n\n"
                             + "We would like to thank you for your payment. Below We're attach the Payment receipt.\n\n"
                             + "If you have any questions or concerns regarding your appointment or payment receipt, please feel free to contact us at +94 0115 333 666.\n\n"
                             + "Thank You For Choosing Us !\n\n"

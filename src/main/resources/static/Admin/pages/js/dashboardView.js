@@ -73,11 +73,27 @@ $(document).ready(function() {
                                                                     });
                                                                 }
 
+                                                                function fetchTotalReports() {
+                                                                    $.ajax({
+                                                                        url: 'http://localhost:8080/report/statistics',
+                                                                        method: 'GET',
+                                                                        dataType: 'json',
+                                                                        success: function(data) {
+                                                                            var totalReports = data.content[0].totalReports;
+                                                                            $('#totalReports').text(totalReports);
+                                                                        },
+                                                                        error: function(xhr, status, error) {
+                                                                            console.error('Error fetching total contact:', error);
+                                                                        }
+                                                                    });
+                                                                }
+
     $(document).ready(function() {
         fetchTotalAppointments();
         fetchTotalIncomes();
         fetchTotalContacts();
         fetchTotalTests();
         fetchTotalTechnicians();
+        fetchTotalReports();
     });
 });

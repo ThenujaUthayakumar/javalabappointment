@@ -132,6 +132,137 @@ public class PaymentService {
         return paymentRepository.save(paymentEntity);
     }
 
+    /*------------------- BILL FORMAT FOR PAYMENT ----------------------------------*/
+    public byte[] generateBill(Payment payment) throws IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        PdfWriter writer = new PdfWriter(outputStream);
+        PdfDocument pdf = new PdfDocument(writer);
+        Document document = new Document(pdf, PageSize.A4);
+
+        try {
+            PdfFont font = PdfFontFactory.createFont("Helvetica");
+            try {
+                Image logo = new Image(ImageDataFactory.create("src/main/resources/static/img/logo.png"));
+                logo.setWidth(100);
+                document.add(logo);
+
+            } catch (IOException e) {
+                System.err.println("Failed to load logo image: " + e.getMessage());
+            }
+            addBillHeader(document, font, payment);
+            addCompanyDetails(document, font);
+            addItemizedList(document, font, payment);
+            addPaidLogo(document);
+        } finally {
+            document.close();
+        }
+        return outputStream.toByteArray();
+    }
+
+    private void addBillHeader(Document document, PdfFont font, Payment payment) {
+        Paragraph header = new Paragraph("Payment Receipt").setFont(font).setFontSize(20);
+        header.setTextAlignment(TextAlignment.CENTER);
+        document.add(header);
+
+        String lastReferenceNumber = paymentRepository.findReferenceNumber();
+        String currentReferenceNumber = getNextReferenceNumber(lastReferenceNumber);
+
+        Paragraph billNo = new Paragraph("Bill No: " + currentReferenceNumber).setFont(font);
+        billNo.setTextAlignment(TextAlignment.RIGHT);
+
+        AppointmentEntity appointment = appointmentRepository.findAppointmentWithRecipientEmailById(payment.getAppointmentId().getId());
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        String currentDateTime = dateFormat.format(new Date());
+        Paragraph date = new Paragraph("Bill Date: " + currentDateTime).setFont(font);
+        date.setTextAlignment(TextAlignment.RIGHT);
+
+        Paragraph appointmentDate = new Paragraph("Appointment Date: " + appointment.getAppointmentDateTime()).setFont(font);
+        appointmentDate.setTextAlignment(TextAlignment.RIGHT);
+        document.add(date);
+        document.add(appointmentDate);
+        document.add(billNo);
+
+        Paragraph customerInfo = new Paragraph()
+                .add(new Text("Patient Name : ").setFont(font))
+                .add(new Text(appointment.getName()).setFont(font).setBold())
+                .add("\n")
+                .add(new Text("Mobile Number   : ").setFont(font))
+                .add(new Text(appointment.getPhoneNumber()).setFont(font).setBold())
+                .add("\n")
+                .add(new Text("Appointment Number : ").setFont(font))
+                .add(new Text(appointment.getReferenceNumber()).setFont(font).setBold())
+                .add("\n");
+        customerInfo.setTextAlignment(TextAlignment.LEFT);
+        document.add(customerInfo);
+
+        document.add(new Paragraph("\n"));
+    }
+
+    private String getNextReferenceNumber(String lastReferenceNumber) {
+        if (lastReferenceNumber == null || lastReferenceNumber.isEmpty()) {
+            return "INVOICE1";
+        } else {
+            try {
+                int number = Integer.parseInt(lastReferenceNumber.substring("INVOICE".length())) + 1;
+                return "INVOICE" + number;
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+    }
+
+    private void addCompanyDetails(Document document, PdfFont font) {
+        Paragraph companyName = new Paragraph("ABC Laboratory").setFont(font).setBold();
+        Paragraph companyContact = new Paragraph("+94 0115 333 666").setFont(font);
+        Paragraph companyAddress = new Paragraph("ABC Laboratory, Wijerama Mawatha, Colombo 07").setFont(font);
+        document.add(companyName);
+        document.add(companyContact);
+        document.add(companyAddress);
+        document.add(new Paragraph("\n"));
+    }
+
+    private void addItemizedList(Document document, PdfFont font, Payment payment) {
+        DecimalFormat df = new DecimalFormat("#.00");
+
+        AppointmentEntity appointment = appointmentRepository.findAppointmentWithRecipientEmailById(payment.getAppointmentId().getId());
+        if (appointment != null && appointment.getTestId().getName() != null) {
+            Table table = new Table(new float[]{3, 1}).useAllAvailableWidth();
+            table.setBorder(new SolidBorder(new DeviceRgb(169, 169, 169), 1));
+
+            table.addCell(createCell("Test Name", font, true).setBackgroundColor(new DeviceRgb(220, 220, 220)));
+            table.addCell(createCell("Amount (LKR)", font, true).setBackgroundColor(new DeviceRgb(220, 220, 220)));
+            table.addCell(createCell(appointment.getTestId().getName(), font, false));
+            table.addCell(createCell(df.format(payment.getAmount()), font, false));
+
+            table.addCell(createCell("Total Amount:", font, false).setBackgroundColor(new DeviceRgb(220, 220, 220)));
+            table.addCell(createCell("Rs " + df.format(payment.getAmount()), font, false).setBackgroundColor(new DeviceRgb(220, 220, 220)));
+
+            document.add(table);
+            document.add(new Paragraph("\n"));
+        }
+    }
+
+    private Cell createCell(String content, PdfFont font, boolean isBold) {
+        Cell cell = new Cell().add(new Paragraph(content).setFont(font));
+        cell.setBorder(Border.NO_BORDER);
+        if (isBold) {
+            cell.setFont(font).setBold();
+        }
+        return cell;
+    }
+
+    private void addPaidLogo(Document document) {
+        try {
+            Image logo = new Image(ImageDataFactory.create("src/main/resources/images/paidLogo.png"));
+            logo.setWidth(200);
+            document.add(new Paragraph().add(logo).setTextAlignment(TextAlignment.CENTER));
+        } catch (IOException e) {
+            System.err.println("Failed to load logo image: " + e.getMessage());
+        }
+    }
+
     /*------------------------ SET AUTO REFERENCE NUMBER FOR PAYMENT ------------------*/
     public String getReferencenumber(){
         String referenceNumber=paymentRepository.findReferenceNumber();
@@ -322,124 +453,6 @@ public class PaymentService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-
-    /*------------------- BILL FORMAT FOR PAYMENT ----------------------------------*/
-    public byte[] generateBill(Payment payment) throws IOException {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-            PdfWriter writer = new PdfWriter(outputStream);
-            PdfDocument pdf = new PdfDocument(writer);
-            Document document = new Document(pdf, PageSize.A4);
-
-            try {
-                PdfFont font = PdfFontFactory.createFont("Helvetica");
-                try {
-                    Image logo = new Image(ImageDataFactory.create("src/main/resources/images/logo.png"));
-                    logo.setWidth(100);
-                    document.add(logo);
-
-                } catch (IOException e) {
-                    System.err.println("Failed to load logo image: " + e.getMessage());
-                }
-                addBillHeader(document, font, payment);
-                addCompanyDetails(document, font);
-                addItemizedList(document, font, payment);
-                addPaidLogo(document);
-            } finally {
-                document.close();
-            }
-            return outputStream.toByteArray();
-        }
-
-        private void addBillHeader(Document document, PdfFont font, Payment payment) {
-            Paragraph header = new Paragraph("Payment Receipt").setFont(font).setFontSize(20);
-            header.setTextAlignment(TextAlignment.CENTER);
-            document.add(header);
-
-            String billNumber = payment.getReferenceNumber();
-
-            Paragraph billNo = new Paragraph("Bill No: " + billNumber).setFont(font);
-            billNo.setTextAlignment(TextAlignment.RIGHT);
-
-            AppointmentEntity appointment = appointmentRepository.findAppointmentWithRecipientEmailById(payment.getAppointmentId().getId());
-
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-            String currentDateTime = dateFormat.format(new Date());
-            Paragraph date = new Paragraph("Bill Date: " + currentDateTime).setFont(font);
-            date.setTextAlignment(TextAlignment.RIGHT);
-
-            Paragraph appointmentDate = new Paragraph("Appointment Date: " + appointment.getAppointmentDateTime()).setFont(font);
-            appointmentDate.setTextAlignment(TextAlignment.RIGHT);
-            document.add(date);
-            document.add(appointmentDate);
-            document.add(billNo);
-
-            Paragraph customerInfo = new Paragraph()
-                    .add(new Text("Patient Name : ").setFont(font))
-                    .add(new Text(payment.getCardHolderName()).setFont(font).setBold())
-                    .add("\n")
-                    .add(new Text("Mobile Number   : ").setFont(font))
-                    .add(new Text(payment.getCardHolderPhoneNumber()).setFont(font).setBold())
-                    .add("\n")
-                    .add(new Text("Appointment Number : ").setFont(font))
-                    .add(new Text(appointment.getReferenceNumber()).setFont(font).setBold())
-                    .add("\n");
-            customerInfo.setTextAlignment(TextAlignment.LEFT);
-            document.add(customerInfo);
-
-            document.add(new Paragraph("\n"));
-        }
-
-        private void addCompanyDetails(Document document, PdfFont font) {
-            Paragraph companyName = new Paragraph("ABC Laboratory").setFont(font).setBold();
-            Paragraph companyContact = new Paragraph("+94 0115 333 666").setFont(font);
-            Paragraph companyAddress = new Paragraph("ABC Laboratory, Wijerama Mawatha, Colombo 07").setFont(font);
-            document.add(companyName);
-            document.add(companyContact);
-            document.add(companyAddress);
-            document.add(new Paragraph("\n"));
-        }
-
-    private void addItemizedList(Document document, PdfFont font, Payment payment) {
-        DecimalFormat df = new DecimalFormat("#.00");
-
-        AppointmentEntity appointment = appointmentRepository.findAppointmentWithRecipientEmailById(payment.getAppointmentId().getId());
-        if (appointment != null && appointment.getTestId().getName() != null) {
-            Table table = new Table(new float[]{3, 1}).useAllAvailableWidth();
-            table.setBorder(new SolidBorder(new DeviceRgb(169, 169, 169), 1));
-
-            table.addCell(createCell("Test Name", font, true).setBackgroundColor(new DeviceRgb(220, 220, 220)));
-            table.addCell(createCell("Amount (LKR)", font, true).setBackgroundColor(new DeviceRgb(220, 220, 220)));
-            table.addCell(createCell(appointment.getTestId().getName(), font, false));
-            table.addCell(createCell(df.format(payment.getAmount()), font, false));
-
-            table.addCell(createCell("Total Amount:", font, false).setBackgroundColor(new DeviceRgb(220, 220, 220)));
-            table.addCell(createCell("Rs " + df.format(payment.getAmount()), font, false).setBackgroundColor(new DeviceRgb(220, 220, 220)));
-
-            document.add(table);
-            document.add(new Paragraph("\n"));
-        }
-    }
-
-    private Cell createCell(String content, PdfFont font, boolean isBold) {
-            Cell cell = new Cell().add(new Paragraph(content).setFont(font));
-            cell.setBorder(Border.NO_BORDER);
-            if (isBold) {
-                cell.setFont(font).setBold();
-            }
-            return cell;
-    }
-
-    private void addPaidLogo(Document document) {
-        try {
-            Image logo = new Image(ImageDataFactory.create("src/main/resources/images/paidLogo.png"));
-            logo.setWidth(200);
-            document.add(new Paragraph().add(logo).setTextAlignment(TextAlignment.CENTER));
-        } catch (IOException e) {
-            System.err.println("Failed to load logo image: " + e.getMessage());
         }
     }
 

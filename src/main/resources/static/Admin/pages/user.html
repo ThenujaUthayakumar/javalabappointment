@@ -44,8 +44,13 @@
                 </li>
                 <li class="nav-item dropdown d-none d-lg-block user-dropdown">
                     <a class="nav-link" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img class="img-xs rounded-circle" src="../assets/images/profile.png" alt="Profile image"> </a>
+                        <img class="img-xs rounded-circle" src="../assets/images/faces/face8.jpg" alt="Profile image"> </a>
                     <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="UserDropdown">
+                        <div class="dropdown-header text-center">
+                            <img class="img-md rounded-circle" src="../assets/images/faces/face8.jpg" alt="Profile image">
+                            <p class="mb-1 mt-3 font-weight-semibold">Allen Moreno</p>
+                            <p class="fw-light text-muted mb-0">allenmoreno@gmail.com</p>
+                        </div>
                         <a class="dropdown-item"><i class="dropdown-item-icon mdi mdi-power text-primary me-2"></i>Sign Out</a>
                     </div>
                 </li>
@@ -120,46 +125,37 @@
                         <div class="card">
                             <div>
                                 <div class="btn-wrapper" style="float:right;">
-                                    <a href="#" id="appointmentDownload" class="btn btn-primary text-white me-0"><i class="icon-download"></i> Download</a>
+                                    <a href="#" id="userDownload" class="btn btn-primary text-white me-0"><i class="icon-download"></i> Download</a>
+                                </div>
+                                <div class="btn-wrapper" style="float:left;margin-left:960px;">
+                                    <a href="create_codes/createUser.html" id="create" class="btn btn-primary text-white me-0"><i class="icon-plus"></i> Create</a>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <h4 class="card-title">Patients Appointments</h4>
+                                <h4 class="card-title">Our System Users</h4>
                                 <div class="table-responsive">
                                     <div id="deleteMessage"></div>
 
-                                    <table class="table table-striped" id="appointmentTable">
+                                    <table class="table table-striped" id="userTable">
                                         <thead>
                                         <tr>
                                             <th>
-                                                ID
-                                            </th>
-                                            <th>
                                                 Name
-                                            </th>
-                                            <th>
-                                                Mobile Number
                                             </th>
                                             <th>
                                                 Address
                                             </th>
                                             <th>
+                                                Mobile Number
+                                            </th>
+                                            <th>
                                                 E-mail
                                             </th>
                                             <th>
-                                                Gender
+                                                Role
                                             </th>
                                             <th>
-                                                Age
-                                            </th>
-                                            <th>
-                                                Test
-                                            </th>
-                                            <th>
-                                                Appointment Date & Time
-                                            </th>
-                                            <th>
-                                                Suggestion Doctor
+                                                Username
                                             </th>
                                             <th>
                                                 Action
@@ -167,7 +163,7 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                            <script src="js/appointmentView.js"></script>
+                                        <script src="js/userView.js"></script>
                                         </tbody>
                                     </table>
                                     <nav aria-label="Page navigation">
