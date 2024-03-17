@@ -235,7 +235,7 @@ public class TechnicianService {
                         if (col.matches("joinDate")) {
                             table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(emp.getJoinDate() != null ? emp.getJoinDate().toString() : "")));
                         }
-                        if (col.matches("status")) {
+                        if (col.matches("image")) {
                             String status = "Yes";
                             if (emp.getImage() == null) {
                                 table.addCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(status != null ? status.toString() : "")));

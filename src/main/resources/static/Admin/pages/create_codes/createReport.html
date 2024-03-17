@@ -119,22 +119,34 @@
                     <div class="col-md-12 grid-margin stretch-card">
                         <div class="card">
                             <div class="card-body">
-                                <h4 class="card-title">Create New Test</h4>
+                                <h4 class="card-title">Create New Lab Report</h4>
                                 <div id="successMessage" class="alert alert-success" style="display: none;" role="alert">
-                                    New Test Created Successfully !
+                                    New Lab Report Created Successfully !
                                 </div>
-                                <form class="forms-sample" id="createTest" novalidate="novalidate">
+                                <form class="forms-sample" id="createReport" novalidate="novalidate">
                                     <div class="form-group">
-                                        <label for="name">Test Name</label>
-                                        <input type="text" class="form-control" id="name" name="name" placeholder="Test Name">
+                                        <label for="technicianId">Technician Name</label>
+                                        <select class="form-control" id="technicianId" name="technicianId">
+                                            <option disabled selected>Select Technician</option>
+                                        </select>
                                     </div>
                                     <div class="form-group">
-                                        <label for="description">Test Description</label>
-                                        <textarea class="form-control" name="description" id="description" placeholder="Test Description" rows="4" colspan="2"></textarea>
+                                        <label for="appointmentId">Patient Name</label>
+                                        <select class="form-control" id="appointmentId" name="appointmentId">
+                                            <option disabled selected>Select Patient</option>
+                                        </select>
                                     </div>
                                     <div class="form-group">
-                                        <label for="cost">Test Cost</label>
-                                        <input type="text" class="form-control" id="cost" name="cost" placeholder="Test Cost">
+                                        <label for="status">Status</label>
+                                        <select class="form-control" id="status" name="status">
+                                            <option disabled selected>Select Status</option>
+                                            <option value="1">Completed</option>
+                                            <option value="0">Pending</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="file">Lab Report</label>
+                                        <input type="file" class="form-control" id="file" name="file" placeholder="Report">
                                     </div>
                                     <button type="submit" class="btn btn-primary me-2">Submit</button>
                                     <button class="btn btn-light">Cancel</button>
@@ -147,13 +159,48 @@
             <footer class="footer">
                 <div class="d-sm-flex justify-content-center justify-content-sm-between">
     <span class="text-muted text-center text-sm-left d-block d-sm-inline-block"><a
-            href="../.././index.html" target="_blank">ABC Laboratory</a></span>
+            href=".../.././index.html" target="_blank">ABC Laboratory</a></span>
                     <span class="float-none float-sm-end d-block mt-1 mt-sm-0 text-center">Copyright © 2024. All rights reserved.</span>
                 </div>
             </footer>
         </div>
     </div>
 </div>
+<script>
+    fetch('http://localhost:8080/appointment')
+        .then(response => response.json())
+        .then(data => {
+            const testList = data.content;
+            const selectElement = document.getElementById('appointmentId');
+
+            testList.forEach(appointment => {
+                const option = document.createElement('option');
+                option.value = appointment.id;
+                option.textContent = appointment.name;
+                selectElement.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching appointment data:', error);
+        });
+
+    fetch('http://localhost:8080/technician')
+        .then(response => response.json())
+        .then(data => {
+            const testList = data.content;
+            const selectElement = document.getElementById('technicianId');
+
+            testList.forEach(technician => {
+                const option = document.createElement('option');
+                option.value = technician.id;
+                option.textContent = technician.name;
+                selectElement.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching technician data:', error);
+        });
+</script>
 
 <!-- js -->
 <script src="../../assets/vendors/js/vendor.bundle.base.js"></script>
