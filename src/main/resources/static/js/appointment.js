@@ -134,12 +134,10 @@ $('#paymentButton').click(function(event) {
     }
 
     if (validatePaymentDetails()) {
-        // Fetch test data to get the amount
         $.ajax({
             type: "GET",
             url: "http://localhost:8080/test?id=" + testId.id,
             success: function(testData) {
-                // Assuming the response contains an 'amount' field
                 var amount = testData.amount;
 
                 var formData = {
@@ -149,7 +147,7 @@ $('#paymentButton').click(function(event) {
                     cardNumber: parseInt($('#cardNumber').val()),
                     cvv: parseInt($('#cvv').val()),
                     expiryDate: $('#expiryDate').val(),
-                    amount: amount
+                    amount: $('#amount').val(),
                 };
 
                 $.ajax({

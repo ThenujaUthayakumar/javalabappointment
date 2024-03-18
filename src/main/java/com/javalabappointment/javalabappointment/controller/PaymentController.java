@@ -44,14 +44,7 @@ public class PaymentController {
 
                 if (recipientEmail != null) {
                     String subject = "Payment Receipt and Appointment Confirmation";
-                    String message = "Dear ";
-
-                    for (PaymentEntity payments : appointment) {
-                        String patientName = payments.getAppointmentId().getName();
-                        String appointmentDateTime = payments.getAppointmentId().getAppointmentDateTime();
-
-                        message += patientName + " - Appointment Date & Time: " + appointmentDateTime + ", ";
-                    }
+                    String message = "Dear Patient,";
 
                     message += "\n\n"
                             + "Location: ABC Laboratory, Wijerama Mawatha, Colombo 07\n\n"
@@ -61,8 +54,7 @@ public class PaymentController {
                             + "Thank You For Choosing Us !\n\n"
                             + "Sincerely,\n"
                             + "[ABC Laboratory]\n"
-                            + "[+94 0115 333 666]\n"
-                            + "<img src='cid:clinicLogo' alt='Clinic Logo'><br>";
+                            + "[+94 0115 333 666]";
 
                     sendEmailWithPDF(recipientEmail, subject, message, billPdf);
                 }
@@ -71,8 +63,8 @@ public class PaymentController {
                     throw new RuntimeException("Failed to send email with bill attached");
                 }
         }catch (IOException | MessagingException e) {
-            e.printStackTrace(); // Handle exception appropriately
-            e.printStackTrace(); // Handle exception appropriately
+            e.printStackTrace();
+            e.printStackTrace();
             throw new RuntimeException("Failed to send email with bill attached");
         }
 
