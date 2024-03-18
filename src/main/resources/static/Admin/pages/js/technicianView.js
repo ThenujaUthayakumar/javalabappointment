@@ -46,7 +46,9 @@ $(document).ready(function() {
             const imagePath = JSON.parse(record.image).filePath;
             const imageUrl = 'http://localhost:8080/img/technician/' + imagePath;
             newRow.append('<td><i class="mdi mdi-eye show-image-icon" style="color:blue;" data-image-url="' + imageUrl + '"></i></td>');
-            newRow.append('<td><a href="./create_codes/updateTechnician.html?id=' + record.id + '"><i class="mdi mdi-pencil-outline edit-icon" style="color:blue;"></i></a><i class="mdi mdi-trash-can-outline delete-icon" style="color:red;" data-technician-id="' + record.id + '"></i></td>');
+            newRow.append('<td><a href="./create_codes/updateTechnician.html?id=' + record.id + '">'+
+            '<i class="mdi mdi-pencil-outline edit-icon" style="color:blue;"></i></a>'+
+            '<i class="mdi mdi-trash-can-outline delete-icon" style="color:red;" data-technician-id="' + record.id + '"></i></td>');
             $('#technicianTable tbody').append(newRow);
         });
             $(document).on('click', '.show-image-icon', function() {

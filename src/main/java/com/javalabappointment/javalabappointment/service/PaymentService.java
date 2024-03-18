@@ -82,7 +82,7 @@ public class PaymentService {
         }
 
         String cardNumberString = String.valueOf(payment.getCardNumber());
-        if(payment.getCardNumber() == null || cardNumberString.length()!=16)
+        if(payment.getCardNumber() == null)
         {
             throw new IllegalStateException("Please Enter Your Card Number !");
         }
@@ -165,12 +165,6 @@ public class PaymentService {
         header.setTextAlignment(TextAlignment.CENTER);
         document.add(header);
 
-        String lastReferenceNumber = paymentRepository.findReferenceNumber();
-        String currentReferenceNumber = getNextReferenceNumber(lastReferenceNumber);
-
-        Paragraph billNo = new Paragraph("Bill No: " + currentReferenceNumber).setFont(font);
-        billNo.setTextAlignment(TextAlignment.RIGHT);
-
         AppointmentEntity appointment = appointmentRepository.findAppointmentWithRecipientEmailById(payment.getAppointmentId().getId());
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
@@ -182,7 +176,6 @@ public class PaymentService {
         appointmentDate.setTextAlignment(TextAlignment.RIGHT);
         document.add(date);
         document.add(appointmentDate);
-        document.add(billNo);
 
         Paragraph customerInfo = new Paragraph()
                 .add(new Text("Patient Name : ").setFont(font))
@@ -198,19 +191,6 @@ public class PaymentService {
         document.add(customerInfo);
 
         document.add(new Paragraph("\n"));
-    }
-
-    private String getNextReferenceNumber(String lastReferenceNumber) {
-        if (lastReferenceNumber == null || lastReferenceNumber.isEmpty()) {
-            return "INVOICE1";
-        } else {
-            try {
-                int number = Integer.parseInt(lastReferenceNumber.substring("INVOICE".length())) + 1;
-                return "INVOICE" + number;
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
     }
 
     private void addCompanyDetails(Document document, PdfFont font) {
