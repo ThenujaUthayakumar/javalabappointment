@@ -94,7 +94,7 @@ public class SystemUserService {
     @Transactional
     public SystemUserEntity update(SystemUser systemUser) throws ParseException {
         SystemUserEntity systemUserEntity=systemUserRepository.findById(systemUser.getId()).orElseThrow(()->new IllegalStateException(
-                "Test With Id"+systemUser.getId()+"Doesn't Exist !"
+                "User With Id"+systemUser.getId()+"Doesn't Exist !"
         ));
 
         if(systemUser.getName() == null || systemUser.getName().isEmpty())
@@ -293,31 +293,33 @@ public class SystemUserService {
 
     /*----------------------------LOGIN ------------------------------------*/
     public SystemUserEntity login(SystemUser systemUser) {
-        SystemUserEntity systemUserEntity=new SystemUserEntity();
+        String username = systemUser.getUsername();
+        String password = systemUser.getPassword();
 
-        if (systemUser.getUsername() == null || systemUser.getPassword() == null) {
+        if (username == null || password == null) {
             throw new IllegalArgumentException("Username or password cannot be null !");
         }
 
-        SystemUserEntity user = systemUserRepository.findByUsername(systemUser.getUsername(),systemUser.getPassword());
-
-        if (user == null) {
+        List<SystemUserEntity> users = systemUserRepository.findAllByUsername(username);
+        if (users.isEmpty()) {
             throw new IllegalStateException("User not found !");
+        } else if (users.size() > 1) {
+            throw new IllegalStateException("Multiple users found with the same username !");
         }
 
-        String passwordHash = user.getPassword();
-        if (!BCrypt.checkpw(systemUser.getPassword(), passwordHash)) {
-            throw new IllegalStateException("Please enter correct password !");
+        SystemUserEntity user = users.get(0);
+
+        String hashedPassword = user.getPassword();
+
+        if (!BCrypt.checkpw(password, hashedPassword)) {
+            throw new IllegalStateException("Incorrect password !");
         }
 
-        if (systemUser.getUsername().equals(systemUserEntity.getUsername()) &&
-                systemUser.getPassword().equals(passwordHash) &&
-                systemUserEntity.getRole().equals("Admin")) {
-            //return ResponseEntity.status(HttpStatus.OK).body("Login Successfully !");
-        } else {
-            throw new IllegalStateException("Invalid Credentials or User not authorized !");
+        if (!user.getRole().equals("Admin")) {
+            throw new IllegalStateException("User not authorized !");
         }
-        return systemUserEntity;
+
+        return user;
     }
 
 }

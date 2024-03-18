@@ -7,11 +7,7 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.property.UnitValue;
-import com.javalabappointment.javalabappointment.entity.AppointmentEntity;
-import com.javalabappointment.javalabappointment.entity.PaymentEntity;
 import com.javalabappointment.javalabappointment.entity.TechnicianEntity;
-import com.javalabappointment.javalabappointment.entity.TestEntity;
-import com.javalabappointment.javalabappointment.persist.Payment;
 import com.javalabappointment.javalabappointment.persist.Technician;
 import com.javalabappointment.javalabappointment.repository.TechnicianRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -147,6 +143,72 @@ public class TechnicianService {
                 searchLike);
 
         return technicianEntities;
+    }
+
+    /*------------------------- UPDATE -------------------------------------*/
+    @Transactional
+    public TechnicianEntity update(Technician technician, MultipartFile file) {
+        TechnicianEntity technicianEntity=technicianRepository.findById(technician.getId()).orElseThrow(()->new IllegalStateException(
+                "Technician With Id"+technician.getId()+"Doesn't Exist !"
+        ));
+        if (technician.getName() == null || technician.getName().isEmpty()) {
+            throw new IllegalArgumentException("Please Enter Technician Name !");
+        }
+
+        if (technician.getAddress() == null || technician.getAddress().isEmpty()) {
+            throw new IllegalArgumentException("Please Enter Technician Address !");
+        }
+
+        if (technician.getEmail() == null || technician.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("Please Enter Technician E-mail !");
+        }
+
+        if (technician.getPhoneNumber() == null || technician.getPhoneNumber().isEmpty()) {
+            throw new IllegalArgumentException("Please Enter Technician Mobile Number !");
+        }
+
+        if (technician.getPosition() == null || technician.getPosition().isEmpty()) {
+            throw new IllegalArgumentException("Please Enter Technician Position !");
+        }
+
+        if (technician.getJoinDate() == null || technician.getJoinDate().isEmpty()) {
+            throw new IllegalArgumentException("Please Enter Technician Join Date !");
+        }
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Please Upload Technician Image !");
+        }
+
+        /*--------------------- IMAGE SAVING IN DATABASE --------------------*/
+        String uploadDirectory = "src/main/resources/static/img/technician";
+
+        try {
+            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+
+            Path uploadPath = Paths.get(uploadDirectory).toAbsolutePath().normalize();
+            Path filePath = uploadPath.resolve(fileName);
+
+            Files.copy(file.getInputStream(), filePath);
+            String relativeFilePath = Paths.get(fileName).toString();
+
+            Map<String, String> imagePath = new HashMap<>();
+            imagePath.put("filePath", relativeFilePath);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String imagePathJson = objectMapper.writeValueAsString(imagePath);
+
+            technicianEntity.setName(technician.getName());
+            technicianEntity.setAddress(technician.getAddress());
+            technicianEntity.setEmail(technician.getEmail());
+            technicianEntity.setPhoneNumber(technician.getPhoneNumber());
+            technicianEntity.setPosition(technician.getPosition());
+            technicianEntity.setJoinDate(technician.getJoinDate());
+            technicianEntity.setImage(imagePathJson);
+
+            return technicianRepository.save(technicianEntity);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store file: " + e.getMessage());
+        }
+
     }
 
     /*------------------------------- DOWNLOAD TECHNICIANS RECORDS ----------------------------------*/

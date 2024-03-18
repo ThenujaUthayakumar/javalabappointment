@@ -11,7 +11,6 @@ import com.javalabappointment.javalabappointment.entity.AppointmentEntity;
 import com.javalabappointment.javalabappointment.entity.LabReportEntity;
 import com.javalabappointment.javalabappointment.entity.TechnicianEntity;
 import com.javalabappointment.javalabappointment.persist.LabReport;
-import com.javalabappointment.javalabappointment.persist.Technician;
 import com.javalabappointment.javalabappointment.repository.AppointmentRepository;
 import com.javalabappointment.javalabappointment.repository.LabReportRepository;
 import com.javalabappointment.javalabappointment.repository.TechnicianRepository;
@@ -162,6 +161,61 @@ public class LabReportService {
                 searchLike);
 
         return labReportEntities;
+    }
+
+    /*------------------------------------UPDATE ------------------------------------*/
+    @Transactional
+    public LabReportEntity update(LabReport labReport, MultipartFile file) {
+        LabReportEntity labReportEntity=labReportRepository.findById(labReport.getId()).orElseThrow(()->new IllegalStateException(
+                "Report With Id"+labReport.getId()+"Doesn't Exist !"
+        ));
+        if (labReport.getStatus() == null) {
+            throw new IllegalArgumentException("Please Enter Status !");
+        }
+
+        TechnicianEntity technicianEntity=technicianRepository.findById(labReport.getTechnicianId()).orElse(null);
+        if (technicianEntity==null)
+        {
+            throw new IllegalStateException("Technician Not Found !");
+        }
+
+        AppointmentEntity appointmentEntity=appointmentRepository.findById(labReport.getAppointmentId().getId()).orElse(null);
+        if (appointmentEntity==null)
+        {
+            throw new IllegalStateException("Patient Not Found !");
+        }
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Please Upload Report PDF !");
+        }
+
+        /*--------------------- IMAGE SAVING IN DATABASE --------------------*/
+        String uploadDirectory = "src/main/resources/static/report";
+
+        try {
+            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+
+            Path uploadPath = Paths.get(uploadDirectory).toAbsolutePath().normalize();
+            Path filePath = uploadPath.resolve(fileName);
+
+            Files.copy(file.getInputStream(), filePath);
+            String relativeFilePath = Paths.get(fileName).toString();
+
+            Map<String, String> imagePath = new HashMap<>();
+            imagePath.put("filePath", relativeFilePath);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String imagePathJson = objectMapper.writeValueAsString(imagePath);
+
+            labReportEntity.setAppointmentId(labReport.getAppointmentId());
+            labReportEntity.setTechnicianId(labReport.getTechnicianId());
+            labReportEntity.setStatus(labReport.getStatus());
+            labReportEntity.setReferenceNumber(this.getReferencenumber());
+            labReportEntity.setPdf(imagePathJson);
+
+            return labReportRepository.save(labReportEntity);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store file: " + e.getMessage());
+        }
     }
 
     /*-------------------------------- DELETE API----------------------------------- */

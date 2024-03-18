@@ -63,7 +63,7 @@ $(document).ready(function() {
                 newRow.append('<td><label class="badge badge-warning">' + statusText + '</label></td>');
             }
             newRow.append('<td>' +
-                '<i class="mdi mdi-pencil-outline edit-icon" style="color:blue;" data-contact-id="' + record.id + '"></i>' +
+                '<a href="./create_codes/updateReport.html?id=' + record.id + '"><i class="mdi mdi-pencil-outline edit-icon" style="color:blue;"></i></a>' +
                 '<i class="mdi mdi-share-variant share-icon" style="color:green;" data-contact-id="' + record.id + '"></i>' +
                 '<i class="mdi mdi-trash-can-outline delete-icon" style="color:red;" data-contact-id="' + record.id + '"></i>' +
                 '</td>');
