@@ -48,6 +48,11 @@ public class LabReportController {
         return labReportService.getAll(skip,limit,orderBy,labReport);
     }
 
+    /*---------------------------UPDATE----------------------------------------------*/
+    @PutMapping
+    public LabReportEntity update(@ModelAttribute LabReport labReport, @RequestPart(value = "file", required = false) MultipartFile file) throws ParseException {
+        return labReportService.update(labReport,file);
+    }
     /*-------------------------------- DELETE API----------------------------------- */
     @DeleteMapping("/delete")
     public ResponseEntity delete (@RequestParam(required = true) Integer id)

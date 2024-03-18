@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -56,8 +57,8 @@ public class SystemUserController {
 
     /*-------------------------- LOGIN -------------------------------------*/
     @PostMapping("/login")
-    public SystemUserEntity login(@RequestBody SystemUser systemUser)
+    public ResponseEntity<SystemUserEntity> login(@Validated @RequestBody SystemUser systemUser)
     {
-        return systemUserService.login(systemUser);
+        return ResponseEntity.ok(systemUserService.login(systemUser));
     }
 }

@@ -35,6 +35,13 @@ public class TechnicianController {
         return technicianService.getAll(skip,limit,orderBy,technician);
     }
 
+    /*------------------------- UPDATE -------------------------------------*/
+    @PutMapping
+    public TechnicianEntity update(@ModelAttribute Technician technician,
+                                   @RequestPart(value = "file", required = false) MultipartFile file) throws ParseException {
+        return technicianService.update(technician,file);
+    }
+
     /*------------------------------- DOWNLOAD TECHNICIANS RECORDS ----------------------------------*/
     @GetMapping("/download")
     public void download(@RequestParam(required = false) Integer skip, @RequestParam(required = false) Integer limit,

@@ -6,23 +6,17 @@ $(document).ready(function(){
         }, "Type the correct answer -_-");
 
         $(function() {
-            // Function to get URL parameter by name
             function getUrlParameter(name) {
                 name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
                 var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
                 var results = regex.exec(location.search);
                 return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
             };
-
-            // Retrieve the record ID from the URL
             var recordId = getUrlParameter('id');
-
-            // AJAX call to get record data based on record ID
             $.ajax({
                 url: "http://localhost:8080/test?id=" + recordId,
                 type: "GET",
                 success: function(data) {
-                    // Populate form fields with retrieved data
                     $('#testId').val(recordId);
                     $('#name').val(data.name);
                     $('#description').val(data.description);
@@ -80,6 +74,247 @@ $(document).ready(function(){
                             $('#successMessage').text('Test Updated Successfully!').fadeIn();
                             setTimeout(function() {
                                 window.location.href = "../test.html";
+                            }, 2000);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(xhr.responseText);
+                        }
+                    });
+                    return false;
+                }
+            });
+        });
+
+        $(function() {
+            function getUrlParameter(name) {
+                name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+                var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+                var results = regex.exec(location.search);
+                return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+            };
+            var recordId = getUrlParameter('id');
+            $.ajax({
+                url: "http://localhost:8080/user?id=" + recordId,
+                type: "GET",
+                success: function(data) {
+                    $('#userId').val(recordId);
+                    $('#name').val(data.name),
+                    $('#address').val(data.address),
+                    $('#phoneNumber').val(data.phoneNumber),
+                    $('#email').val(data.email),
+                    $('#role').val(data.role),
+                    $('#username').val(data.username),
+                    $('#password').val(data.password)
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+            $('#updateUser').validate({
+                rules: {
+                    name: {
+                        required: true,
+                        minlength: 1
+                    },
+                    address: {
+                        required: true,
+                        minlength: 1
+                    },
+                    phoneNumber: {
+                        required: true,
+                        minlength: 1
+                    },
+                    email: {
+                        required: true,
+                        email: true
+                    },
+                    role: {
+                        required: true,
+                        minlength: 1
+                    },
+                    username: {
+                        required: true,
+                        minlength: 1
+                    },
+                    password: {
+                        required: true,
+                        minlength: 1
+                    },
+                    confirm: {
+                        required: true,
+                        minlength: 1,
+                        equalTo: "#password"
+                    }
+                },
+                messages: {
+                    name: {
+                        required: "Please Enter Name!",
+                        minlength: "Your name must consist of at least 1 characters"
+                    },
+                    address: {
+                        required: "Please Enter Address!",
+                        minlength: "Your subject must consist of at least 1 characters"
+                    },
+                    phoneNumber: {
+                        required: "Please Enter Mobile Number!",
+                        minlength: "Your number must consist of at least 1 characters"
+                    },
+                    email: {
+                        required: "Please Enter E-mail!",
+                        email: "Please enter a valid email address"
+                    },
+                    role: {
+                        required: "Please Enter Role!",
+                        minlength: "Your number must consist of at least 1 characters"
+                    },
+                    username: {
+                        required: "Please Enter Username!",
+                        minlength: "Your number must consist of at least 1 characters"
+                    },
+                    password: {
+                        required: "Please Enter password!",
+                        minlength: "Your number must consist of at least 1 characters"
+                    },
+                    confirm: {
+                        required: "Please Enter Correct Confirm Password!",
+                        minlength: "Your number must consist of at least 1 characters",
+                        equalTo: "Password and Confirm Password must match"
+                    }
+                },
+                errorClass: "text-danger",
+                submitHandler: function(form) {
+                    var formData = {
+                        id: $('#userId').val(),
+                        name: $('#name').val(),
+                        address: $('#address').val(),
+                        phoneNumber: $('#phoneNumber').val(),
+                        email: $('#email').val(),
+                        role: $('#role').val(),
+                        username: $('#username').val(),
+                        password: $('#password').val()
+                    };
+
+                    $.ajax({
+                        type: "PUT",
+                        contentType: "application/json",
+                        url: "http://localhost:8080/user?id=" + recordId,
+                        data: JSON.stringify(formData),
+                        success: function(response) {
+                            $('#successMessage').text('User Updated Successfully!').fadeIn();
+                            setTimeout(function() {
+                                window.location.href = "../user.html";
+                            }, 2000);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(xhr.responseText);
+                        }
+                    });
+                    return false;
+                }
+            });
+        });
+
+        $(function() {
+            function getUrlParameter(name) {
+                name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+                var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+                var results = regex.exec(location.search);
+                return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+            };
+            var recordId = getUrlParameter('id');
+            $.ajax({
+                url: "http://localhost:8080/technician?id=" + recordId,
+                type: "GET",
+                success: function(data) {
+                    $('#technicianId').val(recordId);
+                    $('#name').val(data.name),
+                    $('#address').val(data.address),
+                    $('#phoneNumber').val(data.phoneNumber),
+                    $('#email').val(data.email),
+                    $('#position').val(data.position),
+                    $('#joinDate').val(data.joinDate),
+                    $('#file').val(data.file)
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+            $('#updateTechnician').validate({
+                rules: {
+                    name: {
+                        required: true,
+                        minlength: 2
+                    },
+                    phoneNumber: {
+                        required: true,
+                        minlength: 1
+                    },
+                    address: {
+                        required: true,
+                        minlength: 2
+                    },
+                    email: {
+                        required: true,
+                        minlength: 2
+                    },
+                    position: {
+                        required: true,
+                        minlength: 2
+                    },
+                    joinDate: {
+                        required: true,
+                        minlength: 2
+                    },
+                    file: {
+                        required: true
+                    }
+                },
+                messages: {
+                    name: {
+                        required: "Please Enter Name!",
+                        minlength: "Your name must consist of at least 2 characters"
+                    },
+                    phoneNumber: {
+                        required: "Please Enter Mobile Number!",
+                        minlength: "Your subject must consist of at least 4 characters"
+                    },
+                    address: {
+                        required: "Please Enter Address!",
+                        minlength: "Your number must consist of at least 5 characters"
+                    },
+                    email: {
+                        required: "Please Enter E-mail!",
+                        minlength: "Your number must consist of at least 5 characters"
+                    },
+                    position: {
+                        required: "Please Enter Position!",
+                        minlength: "Your number must consist of at least 5 characters"
+                    },
+                    joinDate: {
+                        required: "Please Enter Join Date!",
+                        minlength: "Your number must consist of at least 5 characters"
+                    },
+                    file: {
+                        required: "Please select a file to upload!"
+                    }
+                },
+                errorClass: "text-danger",
+                submitHandler: function(form) {
+                    var formData = new FormData(form);
+                    formData.append("id", $('#technicianId').val());
+
+                    $.ajax({
+                        type: "PUT",
+                        url: "http://localhost:8080/technician?id=" + recordId,
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function(response) {
+                            $('#successMessage').text('Technician Updated Successfully!').fadeIn();
+                            setTimeout(function() {
+                                window.location.href = "../technician.html";
                             }, 2000);
                         },
                         error: function(xhr, status, error) {

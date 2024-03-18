@@ -43,7 +43,7 @@ $(document).ready(function() {
             newRow.append('<td>' + record.email + '</td>');
             newRow.append('<td>' + record.role + '</td>');
             newRow.append('<td>' + record.username + '</td>');
-            newRow.append('<td><a href="./create_codes/updateTest.html?id=' + record.id + '"><i class="mdi mdi-pencil-outline edit-icon" style="color:blue;"></i></a><i class="mdi mdi-trash-can-outline delete-icon" style="color:red;" data-user-id="' + record.id + '"></i></td>');
+            newRow.append('<td><a href="./create_codes/updateUser.html?id=' + record.id + '"><i class="mdi mdi-pencil-outline edit-icon" style="color:blue;"></i></a><i class="mdi mdi-trash-can-outline delete-icon" style="color:red;" data-user-id="' + record.id + '"></i></td>');
             $('#userId').val(record.id);
             $('#userTable tbody').append(newRow);
         });

@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface SystemUserRepository extends JpaRepository<SystemUserEntity,Integer> {
     @Query(value = """
             SELECT * FROM system_users
@@ -35,7 +37,6 @@ public interface SystemUserRepository extends JpaRepository<SystemUserEntity,Int
     @Query(value = "DELETE FROM system_users WHERE id =?1",nativeQuery = true)
     void deleteById(Integer id);
 
-    @Query(value = "SELECT * FROM system_users WHERE username =?1 AND password=?2",nativeQuery = true)
-    SystemUserEntity findByUsername(String username,String password);
+    List<SystemUserEntity> findAllByUsername(String username);
 
 }
