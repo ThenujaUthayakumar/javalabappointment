@@ -1,6 +1,7 @@
 package com.javalabappointment.javalabappointment.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itextpdf.io.source.ByteArrayOutputStream;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -14,20 +15,32 @@ import com.javalabappointment.javalabappointment.persist.LabReport;
 import com.javalabappointment.javalabappointment.repository.AppointmentRepository;
 import com.javalabappointment.javalabappointment.repository.LabReportRepository;
 import com.javalabappointment.javalabappointment.repository.TechnicianRepository;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.util.Optional;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -35,6 +48,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -48,10 +63,12 @@ public class LabReportService {
     private TechnicianRepository technicianRepository;
 
     @Autowired
-    public LabReportService(LabReportRepository labReportRepository,AppointmentRepository appointmentRepository,TechnicianRepository technicianRepository) {
+    public LabReportService(LabReportRepository labReportRepository,AppointmentRepository appointmentRepository,TechnicianRepository technicianRepository,
+                            JavaMailSender emailSender) {
         this.labReportRepository = labReportRepository;
         this.appointmentRepository = appointmentRepository;
         this.technicianRepository = technicianRepository;
+        this.emailSender = emailSender;
     }
 
     /*------------------------- CREATE LAB REPORT --------------------------------*/
@@ -384,4 +401,45 @@ public class LabReportService {
     }
 
     /**/
+    public void sendEmailById(Integer id) {
+        Optional<LabReportEntity> reportOptional = labReportRepository.findById(id);
+        if (reportOptional.isPresent()) {
+            LabReportEntity report = reportOptional.get();
+            try {
+                String filePath = extractFilePath(report.getPdf());
+
+                File file = ResourceUtils.getFile("src/main/resources/static/report/" + filePath);
+                byte[] pdfData = Files.readAllBytes(file.toPath());
+
+                MimeMessage message = emailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true);
+                helper.setTo(report.getAppointmentId().getEmail());
+                helper.setSubject("[ "+report.getAppointmentId().getTestId().getName() + " Report ]");
+                helper.setText("Dear " + report.getAppointmentId().getName()+ ",\n\n" +
+                        "Your Report attached below If you have any questions or concerns regarding the report, please don't hesitate to reach out to us. We're here to assist you and provide any clarification you may need.\n" +
+                        "Thank you for choosing " + "ABC Laboratory" + " for your healthcare needs. We wish you continued health and well-being.\n\n" +
+                        "Best regards,\n" +
+                        "ABC Laboratory \n" +
+                        "+94 0115 333 666");
+
+
+                helper.addAttachment(report.getAppointmentId().getName()+" Report", new ByteArrayResource(pdfData));
+
+                emailSender.send(message);
+            } catch (IOException | MessagingException e) {
+                throw new RuntimeException("Failed to send email with lab report attachment", e);
+            }
+        } else {
+            throw new RuntimeException("Lab report not found with ID: " + id);
+        }
+    }
+
+    private String extractFilePath(String json) {
+        Pattern pattern = Pattern.compile("\"filePath\":\\s*\"(.*?)\"");
+        Matcher matcher = pattern.matcher(json);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        throw new IllegalArgumentException("Invalid JSON string: " + json);
+    }
 }
