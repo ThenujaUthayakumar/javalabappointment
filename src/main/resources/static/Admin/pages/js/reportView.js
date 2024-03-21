@@ -18,6 +18,7 @@ $(document).ready(function() {
                 if (Array.isArray(data.content)) {
                     contactsData = data.content;
                     renderContacts(currentPage);
+                     attachShareButtonListener();
                 } else {
                     console.error('Data is not in the expected format:', data);
                 }
@@ -62,11 +63,12 @@ $(document).ready(function() {
                 statusText = 'Pending';
                 newRow.append('<td><label class="badge badge-warning">' + statusText + '</label></td>');
             }
-            newRow.append('<td>' +
+            newRow.append('<td style="padding-right: 10px;">' +
                 '<a href="./create_codes/updateReport.html?id=' + record.id + '"><i class="mdi mdi-pencil-outline edit-icon" style="color:blue;"></i></a>' +
-                '<i class="mdi mdi-share-variant share-icon" style="color:green;" data-contact-id="' + record.id + '"></i>' +
+                '<i class="mdi mdi-share-variant share-icon" style="color:green; margin-left: 10px; margin-right: 10px;" data-contact-id="' + record.id + '"></i>' +
                 '<i class="mdi mdi-trash-can-outline delete-icon" style="color:red;" data-contact-id="' + record.id + '"></i>' +
                 '</td>');
+
 
             $('#reportTable tbody').append(newRow);
         });
@@ -102,6 +104,31 @@ $(document).ready(function() {
 
         totalPages = Math.ceil(contactsData.length / pageSize);
         updatePagination();
+    }
+    function attachShareButtonListener() {
+        $(document).on('click', '.share-icon', function() {
+            var recordId = $(this).data('contact-id');
+            var url = "http://localhost:8080/report/share?id=" + recordId;
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                showSuccessMessage();
+                setTimeout(function() {
+                    hideSuccessMessage();
+                }, 2000);
+            }
+        };
+        xhr.send();
+        });
+    }
+
+    function showSuccessMessage() {
+        $('#successShareMessage').fadeIn();
+    }
+
+    function hideSuccessMessage() {
+        $('#successShareMessage').fadeOut();
     }
 
     $('#pagination').on('click', 'a.page-link', function(e) {
