@@ -400,7 +400,7 @@ public class LabReportService {
         }
     }
 
-    /**/
+    /*-------------------- REPORT SHARE TO PATIENT EMAIL -------------------------*/
     public void sendEmailById(Integer id) {
         Optional<LabReportEntity> reportOptional = labReportRepository.findById(id);
         if (reportOptional.isPresent()) {
@@ -416,8 +416,11 @@ public class LabReportService {
                 helper.setTo(report.getAppointmentId().getEmail());
                 helper.setSubject("[ "+report.getAppointmentId().getTestId().getName() + " Report ]");
                 helper.setText("Dear " + report.getAppointmentId().getName()+ ",\n\n" +
-                        "Your Report attached below If you have any questions or concerns regarding the report, please don't hesitate to reach out to us. We're here to assist you and provide any clarification you may need.\n" +
-                        "Thank you for choosing " + "ABC Laboratory" + " for your healthcare needs. We wish you continued health and well-being.\n\n" +
+                        "Your Report attached below If you have any questions or concerns regarding the report, " +
+                        "please don't hesitate to reach out to us. We're here to assist you and provide any " +
+                        "clarification you may need.\n" +
+                        "Thank you for choosing " + "ABC Laboratory" + " for your healthcare needs." +
+                        " We wish you continued health and well-being.\n\n" +
                         "Best regards,\n" +
                         "ABC Laboratory \n" +
                         "+94 0115 333 666");

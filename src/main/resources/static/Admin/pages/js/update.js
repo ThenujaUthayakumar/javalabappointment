@@ -325,5 +325,89 @@ $(document).ready(function(){
                 }
             });
         });
+
+        $(function() {
+            function getUrlParameter(name) {
+                name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+                var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+                var results = regex.exec(location.search);
+                return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+            };
+            var recordId = getUrlParameter('id');
+            $.ajax({
+                url: "http://localhost:8080/report?id=" + recordId,
+                type: "GET",
+                success: function(data) {
+                    $('#reportId').val(recordId);
+                    $('#technicianId').val(data.technicianId.id),
+                    $('#appointmentId').val(data.appointmentId.id),
+                    $('#status').val(data.status),
+                    $('#file').val(data.file)
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+
+            $('#updateReport').validate({
+                rules: {
+                    technicianId: {
+                        required: true,
+                        minlength: 1
+                    },
+                    appointmentId: {
+                        required: true,
+                        minlength: 1
+                    },
+                    status: {
+                        required: true,
+                        minlength: 1
+                    },
+                    file: {
+                        required: true
+                    }
+                },
+                messages: {
+                    technicianId: {
+                        required: "Please Enter Technician Name!",
+                        minlength: "Your name must consist of at least 1 characters"
+                    },
+                    appointmentId: {
+                        required: "Please Enter Patient Name!",
+                        minlength: "Your subject must consist of at least 1 characters"
+                    },
+                    status: {
+                        required: "Please Enter Status!",
+                        minlength: "Your number must consist of at least 1 characters"
+                    },
+                    file: {
+                        required: "Please select a file to upload!"
+                    }
+                },
+                errorClass: "text-danger",
+                submitHandler: function(form) {
+                    var formData = new FormData(form);
+                    formData.append("id", $('#reportId').val());
+
+                    $.ajax({
+                        type: "PUT",
+                        url: "http://localhost:8080/report?id=" + recordId,
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function(response) {
+                            $('#successMessage').text('Report Updated Successfully!').fadeIn();
+                            setTimeout(function() {
+                                window.location.href = "../report.html";
+                            }, 2000);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(xhr.responseText);
+                        }
+                    });
+                    return false;
+                }
+            });
+        });
     })(jQuery);
 });

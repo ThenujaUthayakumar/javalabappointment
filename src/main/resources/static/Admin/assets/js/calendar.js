@@ -1,21 +1,30 @@
-document.addEventListener('DOMContentLoaded', function() {
-  var calendarEl = document.getElementById('calendar');
+document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
 
-  var calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth', // Set initial view to month
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay'
-    },
-    events: {
-      url: 'http://example.com/api/events', // Replace with your API endpoint
-      method: 'GET',
-      failure: function() {
-        console.error('Error fetching events from the API');
-      }
-    }
-  });
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        plugins: ['dayGrid'],
+        events: function (fetchInfo, successCallback, failureCallback) {
+            $.ajax({
+                url: 'http://localhost:8080/appointment',
+                method: 'GET',
+                success: function (response) {
+                    const appointments = response.content;
+                    const formattedEvents = appointments.map(appointment => ({
+                        title: appointment.name,
+                        start: appointment.appointmentDateTime
+                    }));
 
-  calendar.render();
+                    successCallback(formattedEvents);
+                },
+                error: function (xhr, status, error) {
+                    failureCallback(error);
+                }
+            });
+        },
+        eventClick: function (info) {
+            alert('Appointment: ' + info.event.title);
+        }
+    });
+
+    calendar.render();
 });
